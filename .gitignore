@@ -1,3 +1,4 @@
 composer.phar
 /vendor/
 /node_modules/
+*.cache

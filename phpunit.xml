@@ -2,7 +2,7 @@
 <phpunit
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
-        bootstrap="tests/Bootstrap.php"
+        bootstrap="test/Bootstrap.php"
 >
     <php>
         <ini name="error_reporting" value="E_ALL"/>
@@ -10,7 +10,7 @@
 
     <testsuites>
         <testsuite name="skillshare/apollo-federation-php Test Suite">
-            <directory>./tests/</directory>
+            <directory>./test/</directory>
         </testsuite>
     </testsuites>
 
