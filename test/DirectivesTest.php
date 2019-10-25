@@ -21,16 +21,6 @@ class SchemaTest extends TestCase
         $this->assertEqualsCanonicalizing($config['locations'], $expectedLocations);
     }
 
-    public function testExtendsDirective()
-    {
-        $config = Directives::extends()->config;
-
-        $expectedLocations = [DirectiveLocation::OBJECT];
-
-        $this->assertEquals($config['name'], 'extends');
-        $this->assertEqualsCanonicalizing($config['locations'], $expectedLocations);
-    }
-
     public function testExternalDirective()
     {
         $config = Directives::external()->config;

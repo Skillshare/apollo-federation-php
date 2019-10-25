@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Apollo\Federation;
 
 use Apollo\Federation\Directives\KeyDirective;
-use Apollo\Federation\Directives\ExtendsDirective;
 use Apollo\Federation\Directives\ExternalDirective;
 use Apollo\Federation\Directives\ProvidesDirective;
 use Apollo\Federation\Directives\RequiresDirective;
@@ -17,11 +16,6 @@ class Directives
     public static function key(): KeyDirective
     {
         return self::getDirectives()['key'];
-    }
-
-    public static function extends(): ExtendsDirective
-    {
-        return self::getDirectives()['extends'];
     }
 
     public static function external(): ExternalDirective
@@ -44,7 +38,6 @@ class Directives
         if (!self::$directives) {
             self::$directives = [
                 'key' => new KeyDirective(),
-                'extends' => new ExtendsDirective(),
                 'external' => new ExternalDirective(),
                 'requires' => new RequiresDirective(),
                 'provides' => new ProvidesDirective()
