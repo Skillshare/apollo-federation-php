@@ -16,5 +16,5 @@ vendor
 **/*.sql
 **/*.png
 **/*.md
-**/*.xml.*
+**/*.xml*
 coverage
