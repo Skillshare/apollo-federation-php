@@ -9,31 +9,50 @@ use Apollo\Federation\Directives\ExternalDirective;
 use Apollo\Federation\Directives\ProvidesDirective;
 use Apollo\Federation\Directives\RequiresDirective;
 
+/**
+ * Helper class to get directives for annotating federated entity types.
+ */
 class Directives
 {
+    /** @var array */
     private static $directives;
 
+    /**
+     * Gets the @key directive
+     */
     public static function key(): KeyDirective
     {
         return self::getDirectives()['key'];
     }
 
+    /**
+     * Gets the @external directive
+     */
     public static function external(): ExternalDirective
     {
         return self::getDirectives()['external'];
     }
 
+    /**
+     * Gets the @requires directive
+     */
     public static function requires(): RequiresDirective
     {
         return self::getDirectives()['requires'];
     }
 
+    /**
+     * Gets the @provides directive
+     */
     public static function provides(): ProvidesDirective
     {
         return self::getDirectives()['provides'];
     }
 
-    public static function getDirectives()
+    /**
+     * Gets the directives that can be used on federated entity types
+     */
+    public static function getDirectives(): array
     {
         if (!self::$directives) {
             self::$directives = [

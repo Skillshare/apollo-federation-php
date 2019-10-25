@@ -7,6 +7,10 @@ use GraphQL\Type\Definition\Directive;
 use GraphQL\Type\Definition\FieldArgument;
 use GraphQL\Language\DirectiveLocation;
 
+/**
+ * The `@provides` directive is used to annotate the expected returned fieldset from a field
+ * on a base type that is guaranteed to be selectable by the gateway.
+ */
 class ProvidesDirective extends Directive
 {
     public function __construct()
