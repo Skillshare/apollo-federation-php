@@ -1,0 +1,29 @@
+{
+  "devDependencies": {
+    "@prettier/plugin-php": "^0.11.2",
+    "commitizen": "^4.0.3",
+    "cz-conventional-changelog": "3.0.2",
+    "husky": "^3.0.9",
+    "lint-staged": "^9.4.2",
+    "prettier": "^1.18.2"
+  },
+  "scripts": {
+    "commit": "git-cz"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*": [
+      "prettier --write",
+      "git add"
+    ]
+  }
+}

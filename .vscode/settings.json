@@ -1,0 +1,6 @@
+{
+  "editor.formatOnSave": true,
+  "editor.tabSize": 4,
+  "prettier.proseWrap": "always",
+  "prettier.printWidth": 120
+}
