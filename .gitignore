@@ -2,3 +2,4 @@ composer.phar
 /vendor/
 /node_modules/
 *.cache
+cov.xml
