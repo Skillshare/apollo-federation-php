@@ -1,0 +1,6 @@
+data:
+    viewer:
+        id: 1
+        email: bruce@wayneindustries.com
+        firstName: Bruce
+        lastName: Wayne
