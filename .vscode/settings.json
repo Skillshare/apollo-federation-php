@@ -1,6 +1,9 @@
 {
-  "editor.formatOnSave": true,
-  "editor.tabSize": 4,
-  "prettier.proseWrap": "always",
-  "prettier.printWidth": 120
+    "editor.formatOnSave": true,
+    "editor.tabSize": 4,
+    "prettier.proseWrap": "always",
+    "prettier.printWidth": 120,
+    "[php]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    }
 }
