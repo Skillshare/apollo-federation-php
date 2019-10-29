@@ -46,6 +46,9 @@ class EntityObjectType extends ObjectType
     /** @var array */
     private $keyFields;
 
+    /** @var callable */
+    private $referenceResolver;
+
     /**
      * @param mixed[] $config
      */
@@ -55,6 +58,11 @@ class EntityObjectType extends ObjectType
         self::validateKeyFields($config);
 
         $this->keyFields = $config['keyFields'];
+
+        if (isset($config['__resolveReference'])) {
+            self::validateResolveReference($config);
+            $this->referenceResolver = $config['__resolveReference'];
+        }
 
         parent::__construct($config);
     }
@@ -67,6 +75,13 @@ class EntityObjectType extends ObjectType
     public function getKeyFields(): array
     {
         return $this->keyFields;
+    }
+
+    public function resolveReference($ref, $context = null, $info = null)
+    {
+        Utils::invariant(isset($this->referenceResolver), 'No reference resolver was set in the configuration.');
+
+        return ($this->referenceResolver)($ref, $context, $info);
     }
 
     private static function validateFields(array $config)
@@ -101,5 +116,10 @@ class EntityObjectType extends ObjectType
                 'Entity key refers to a field that does not exist in the fields array.'
             );
         }
+    }
+
+    public static function validateResolveReference(array $config)
+    {
+        Utils::invariant(is_callable($config['__resolveReference']), 'Reference resolver has to be callable.');
     }
 }

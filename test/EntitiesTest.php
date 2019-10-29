@@ -36,6 +36,34 @@ class EntitiesTest extends TestCase
         $this->assertMatchesSnapshot($userType->config);
     }
 
+    public function testResolvingEntityReference()
+    {
+        $expectedRef = [
+            'id' => 1,
+            'email' => 'luke@skywalker.com',
+            'firstName' => 'Luke',
+            'lastName' => 'Skywalker'
+        ];
+
+        $userType = new EntityObjectType([
+            'name' => 'User',
+            'keyFields' => ['id', 'email'],
+            'fields' => [
+                'id' => ['type' => Type::int()],
+                'email' => ['type' => Type::string()],
+                'firstName' => ['type' => Type::string()],
+                'lastName' => ['type' => Type::string()]
+            ],
+            '__resolveReference' => function () use ($expectedRef) {
+                return $expectedRef;
+            }
+        ]);
+
+        $actualRef = $userType->resolveReference(['id' => 1, '__typeName' => 'User']);
+
+        $this->assertEquals($expectedRef, $actualRef);
+    }
+
     public function testCreatingEntityTypeWithoutKeyFields()
     {
         $this->expectException(InvariantViolation::class);
