@@ -10,6 +10,7 @@ use GraphQL\Type\Definition\Type;
 use GraphQL\Utils\TypeInfo;
 
 use Apollo\Federation\Types\EntityObjectType;
+use Apollo\Federation\Utils\FederatedSchemaPrinter;
 
 /**
  * A federated GraphQL schema definition (see [related docs](https://www.apollographql.com/docs/apollo-server/federation/introduction))
@@ -61,7 +62,7 @@ class FederatedSchema extends Schema
         $this->entityTypes = $this->extractEntityTypes($config);
         $this->entityDirectives = Directives::getDirectives();
 
-        $config = array_merge($config, $this->getEntityDirectivesConfig());
+        $config = array_merge($config, $this->getEntityDirectivesConfig(), $this->getQueryTypeConfig($config));
 
         parent::__construct($config);
     }
@@ -95,6 +96,46 @@ class FederatedSchema extends Schema
         $config['directives'] = array_merge($directives, $this->entityDirectives);
 
         return $config;
+    }
+
+    /** @var array */
+    private function getQueryTypeConfig(array $config): array
+    {
+        $queryTypeFields = array_merge($config['query']->getFields(), $this->getQueryTypeServiceFieldConfig());
+
+        return [
+            'query' => new ObjectType(
+                array_merge([
+                    'name' => 'Query',
+                    'fields' => $queryTypeFields
+                ])
+            )
+        ];
+    }
+
+    /** @var array */
+    private function getQueryTypeServiceFieldConfig(): array
+    {
+        $serviceType = new ObjectType([
+            'name' => '_Service',
+            'fields' => [
+                'sdl' => [
+                    'type' => Type::string(),
+                    'resolve' => function () {
+                        return FederatedSchemaPrinter::doPrint($this);
+                    }
+                ]
+            ]
+        ]);
+
+        return [
+            '_service' => [
+                'type' => Type::nonNull($serviceType),
+                'resolve' => function () {
+                    return [];
+                }
+            ]
+        ];
     }
 
     /**
