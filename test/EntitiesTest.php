@@ -59,7 +59,7 @@ class EntitiesTest extends TestCase
             }
         ]);
 
-        $actualRef = $userType->resolveReference(['id' => 1, '__typeName' => 'User']);
+        $actualRef = $userType->resolveReference(['id' => 1, 'email' => 'luke@skywalker.com', '__typename' => 'User']);
 
         $this->assertEquals($expectedRef, $actualRef);
     }

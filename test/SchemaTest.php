@@ -11,6 +11,7 @@ use GraphQL\GraphQL;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Error\InvariantViolation;
+use GraphQL\Utils\SchemaPrinter;
 
 use Apollo\Federation\FederatedSchema;
 use Apollo\Federation\Types\EntityObjectType;
@@ -45,6 +46,18 @@ class SchemaTest extends TestCase
         $this->assertArrayHasKey('Location', $entityTypes);
     }
 
+    public function testMetaTypes()
+    {
+        $schema = StarWarsSchema::getEpisodesSchema();
+
+        $anyType = $schema->getType('_Any');
+        $entitiesType = $schema->getType('_Entity');
+
+        $this->assertNotNull($anyType);
+        $this->assertNotNull($entitiesType);
+        $this->assertEqualsCanonicalizing($entitiesType->getTypes(), array_values($schema->getEntityTypes()));
+    }
+
     public function testDirectives()
     {
         $schema = StarWarsSchema::getEpisodesSchema();
@@ -63,6 +76,44 @@ class SchemaTest extends TestCase
 
         $result = GraphQL::executeQuery($schema, $query);
 
+        $this->assertMatchesSnapshot($result->toArray());
+    }
+
+    public function testSchemaSdl()
+    {
+        $schema = StarWarsSchema::getEpisodesSchema();
+        $schemaSdl = SchemaPrinter::doPrint($schema);
+
+        $this->assertMatchesSnapshot($schemaSdl);
+    }
+
+    public function testResolvingEntityReferences()
+    {
+        $schema = StarWarsSchema::getEpisodesSchema();
+
+        $query = '
+            query GetEpisodes(\$representations: [_Any!]!) { 
+                _entities(representations: \$representations) {
+                    ... on Episode {
+                        id
+                        title
+                    }
+                } 
+            }
+        ';
+
+        $variables = [
+            'representations' => [
+                [
+                    '__typename' => 'Episode',
+                    'id' => 1
+                ]
+            ]
+        ];
+
+        $result = GraphQL::executeQuery($schema, $query, null, null, $variables);
+
+        $this->assertCount(1, $result->data['_entities']);
         $this->assertMatchesSnapshot($result->toArray());
     }
 }

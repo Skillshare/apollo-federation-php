@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace Apollo\Federation;
 
 use GraphQL\Type\Schema;
+use GraphQL\Type\Definition\CustomScalarType;
 use GraphQL\Type\Definition\ObjectType;
+use GraphQL\Type\Definition\UnionType;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Utils\TypeInfo;
+use GraphQL\Utils\Utils;
 
 use Apollo\Federation\Types\EntityObjectType;
 use Apollo\Federation\Utils\FederatedSchemaPrinter;
@@ -101,7 +104,11 @@ class FederatedSchema extends Schema
     /** @var array */
     private function getQueryTypeConfig(array $config): array
     {
-        $queryTypeFields = array_merge($config['query']->getFields(), $this->getQueryTypeServiceFieldConfig());
+        $queryTypeFields = array_merge(
+            $config['query']->getFields(),
+            $this->getQueryTypeServiceFieldConfig(),
+            $this->getQueryTypeEntitiesFieldConfig()
+        );
 
         return [
             'query' => new ObjectType(
@@ -133,6 +140,59 @@ class FederatedSchema extends Schema
                 'type' => Type::nonNull($serviceType),
                 'resolve' => function () {
                     return [];
+                }
+            ]
+        ];
+    }
+
+    /** @var array */
+    private function getQueryTypeEntitiesFieldConfig(): array
+    {
+        if (!$this->hasEntityTypes()) {
+            return [];
+        }
+
+        $entityType = new UnionType([
+            'name' => '_Entity',
+            'types' => array_values($this->getEntityTypes())
+        ]);
+
+        $anyType = new CustomScalarType([
+            'name' => '_Any',
+            'serialize' => function ($value) {
+                return $value;
+            }
+        ]);
+
+        return [
+            '_entities' => [
+                'type' => Type::listOf($entityType),
+                'args' => [
+                    'representations' => [
+                        'type' => Type::nonNull(Type::listOf(Type::nonNull($anyType)))
+                    ]
+                ],
+                'resolve' => function ($root, $args, $context, $info) {
+                    return array_map(function ($ref) use ($context, $info) {
+                        Utils::invariant(isset($ref['__typename']), 'Type name must be provided in the reference.');
+
+                        $typeName = $ref['__typename'];
+                        $type = $info->schema->getType($typeName);
+
+                        Utils::invariant(
+                            $type && $type instanceof EntityObjectType,
+                            sprintf(
+                                'The _entities resolver tried to load an entity for type "%s", but no object type of that name was found in the schema',
+                                $type->name
+                            )
+                        );
+
+                        if (!$type->hasReferenceResolver()) {
+                            return $ref;
+                        }
+
+                        return $type->resolveReference($ref, $context, $info);
+                    }, $args['representations']);
                 }
             ]
         ];
