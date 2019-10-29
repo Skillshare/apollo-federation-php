@@ -26,6 +26,20 @@ use array_key_exists;
  *       'keyFields' => ['id', 'email'],
  *       'fields' => [...]
  *     ]);
+ *
+ * Entity types can also set attributes to its fields to hint the gateway on how to resolve them.
+ *
+ *     $userType = new Apollo\Federation\Types\EntityObjectType([
+ *       'name' => 'User',
+ *       'keyFields' => ['id', 'email'],
+ *       'fields' => [
+ *         'id' => [
+ *           'type' => Types::int(),
+ *           'isExternal' => true,
+ *         ]
+ *       ]
+ *     ]);
+ *
  */
 class EntityObjectType extends ObjectType
 {
