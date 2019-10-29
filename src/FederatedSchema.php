@@ -150,7 +150,7 @@ class FederatedSchema extends Schema
 
         foreach ($resolvedTypes as $type) {
             if ($type instanceof EntityObjectType) {
-                array_push($entityTypes, $type);
+                $entityTypes[$type->name] = $type;
             }
         }
 

@@ -18,8 +18,6 @@ use Apollo\Federation\Types\EntityRefObjectType;
 
 use Apollo\Federation\Tests\StarWarsSchema;
 
-use sizeof;
-
 class SchemaTest extends TestCase
 {
     use MatchesSnapshots;
@@ -41,10 +39,10 @@ class SchemaTest extends TestCase
         $entityTypes = $schema->getEntityTypes();
         $hasEntityTypes = $schema->hasEntityTypes();
 
-        $userType = $entityTypes[0];
-
         $this->assertTrue($hasEntityTypes);
-        $this->assertEquals($userType->toString(), 'User');
+        $this->assertArrayHasKey('Episode', $entityTypes);
+        $this->assertArrayHasKey('Character', $entityTypes);
+        $this->assertArrayHasKey('Location', $entityTypes);
     }
 
     public function testDirectives()
