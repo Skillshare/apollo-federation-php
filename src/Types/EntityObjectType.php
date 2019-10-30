@@ -46,6 +46,9 @@ class EntityObjectType extends ObjectType
     /** @var array */
     private $keyFields;
 
+    /** @var callable */
+    private $referenceResolver;
+
     /**
      * @param mixed[] $config
      */
@@ -55,6 +58,11 @@ class EntityObjectType extends ObjectType
         self::validateKeyFields($config);
 
         $this->keyFields = $config['keyFields'];
+
+        if (isset($config['__resolveReference'])) {
+            self::validateResolveReference($config);
+            $this->referenceResolver = $config['__resolveReference'];
+        }
 
         parent::__construct($config);
     }
@@ -67,6 +75,50 @@ class EntityObjectType extends ObjectType
     public function getKeyFields(): array
     {
         return $this->keyFields;
+    }
+
+    /**
+     * Gets whether this entity has a resolver set
+     *
+     * @return bool
+     */
+    public function hasReferenceResolver(): bool
+    {
+        return isset($this->referenceResolver);
+    }
+
+    /**
+     * Resolves an entity from a reference
+     *
+     * @param mixed $ref
+     * @param mixed $context
+     * @param mixed $info
+     */
+    public function resolveReference($ref, $context = null, $info = null)
+    {
+        $this->validateReferenceResolver();
+        $this->validateReferenceKeys($ref);
+
+        $entity = ($this->referenceResolver)($ref, $context, $info);
+
+        $entity['__typename'] = $ref['__typename'];
+
+        return $entity;
+    }
+
+    private function validateReferenceResolver()
+    {
+        Utils::invariant(isset($this->referenceResolver), 'No reference resolver was set in the configuration.');
+    }
+
+    private function validateReferenceKeys($ref)
+    {
+        Utils::invariant(isset($ref['__typename']), 'Type name must be provided in the reference.');
+
+        $refKeys = array_keys($ref);
+        $refContainsKeys = count(array_intersect($this->getKeyFields(), $refKeys)) === count($this->getKeyFields());
+
+        Utils::invariant($refContainsKeys, 'Key fields are missing from the entity reference.');
     }
 
     private static function validateFields(array $config)
@@ -101,5 +153,10 @@ class EntityObjectType extends ObjectType
                 'Entity key refers to a field that does not exist in the fields array.'
             );
         }
+    }
+
+    public static function validateResolveReference(array $config)
+    {
+        Utils::invariant(is_callable($config['__resolveReference']), 'Reference resolver has to be callable.');
     }
 }

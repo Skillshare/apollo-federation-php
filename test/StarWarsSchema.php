@@ -77,7 +77,10 @@ class StarWarsSchema
                         'provides' => 'name'
                     ]
                 ],
-                'keyFields' => ['id']
+                'keyFields' => ['id'],
+                '__resolveReference' => function ($ref) {
+                    return StarWarsData::getEpisodeById($ref['id']);
+                }
             ]);
 
             $queryType = new ObjectType([
