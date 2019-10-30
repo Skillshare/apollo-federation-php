@@ -76,6 +76,8 @@ class SchemaTest extends TestCase
 
         $result = GraphQL::executeQuery($schema, $query);
 
+        var_dump($result->toArray());
+
         $this->assertMatchesSnapshot($result->toArray());
     }
 
