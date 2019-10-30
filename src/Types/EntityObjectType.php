@@ -26,6 +26,20 @@ use array_key_exists;
  *       'keyFields' => ['id', 'email'],
  *       'fields' => [...]
  *     ]);
+ *
+ * Entity types can also set attributes to its fields to hint the gateway on how to resolve them.
+ *
+ *     $userType = new Apollo\Federation\Types\EntityObjectType([
+ *       'name' => 'User',
+ *       'keyFields' => ['id', 'email'],
+ *       'fields' => [
+ *         'id' => [
+ *           'type' => Types::int(),
+ *           'isExternal' => true,
+ *         ]
+ *       ]
+ *     ]);
+ *
  */
 class EntityObjectType extends ObjectType
 {
@@ -37,17 +51,8 @@ class EntityObjectType extends ObjectType
      */
     public function __construct(array $config)
     {
-        Utils::invariant(
-            isset($config['keyFields']) && is_array($config['keyFields']),
-            'Entity key fields must be provided and has to be an array.'
-        );
-
-        foreach ($config['keyFields'] as $keyField) {
-            Utils::invariant(
-                array_key_exists($keyField, $config['fields']),
-                'Entity key refers to a field that does not exist in the fields array.'
-            );
-        }
+        self::validateFields($config);
+        self::validateKeyFields($config);
 
         $this->keyFields = $config['keyFields'];
 
@@ -62,5 +67,39 @@ class EntityObjectType extends ObjectType
     public function getKeyFields(): array
     {
         return $this->keyFields;
+    }
+
+    private static function validateFields(array $config)
+    {
+        Utils::invariant(isset($config['fields']) && is_array($config['fields']), 'Fields must be specified.');
+
+        foreach ($config['fields'] as $field) {
+            if (isset($field['isExternal'])) {
+                Utils::invariant(is_bool($field['isExternal']), "Config property 'isExternal' should be a boolean.");
+            }
+
+            if (isset($field['provides'])) {
+                Utils::invariant(is_string($field['provides']), "Config property 'provides' should be a string.");
+            }
+
+            if (isset($field['requires'])) {
+                Utils::invariant(is_string($field['requires']), "Config property 'requires' should be a string.");
+            }
+        }
+    }
+
+    public static function validateKeyFields(array $config)
+    {
+        Utils::invariant(
+            isset($config['keyFields']) && is_array($config['keyFields']),
+            'Entity key fields must be provided and has to be an array.'
+        );
+
+        foreach ($config['keyFields'] as $keyField) {
+            Utils::invariant(
+                array_key_exists($keyField, $config['fields']),
+                'Entity key refers to a field that does not exist in the fields array.'
+            );
+        }
     }
 }

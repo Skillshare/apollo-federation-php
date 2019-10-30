@@ -23,7 +23,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Apollo\\Federation\\Tests\\": "tests/"
+            "Apollo\\Federation\\Tests\\": "test/"
         }
     },
     "require-dev": {

@@ -14,6 +14,9 @@ use GraphQL\Error\InvariantViolation;
 
 use Apollo\Federation\FederatedSchema;
 use Apollo\Federation\Types\EntityObjectType;
+use Apollo\Federation\Types\EntityRefObjectType;
+
+use Apollo\Federation\Tests\StarWarsSchema;
 
 use sizeof;
 
@@ -23,8 +26,8 @@ class SchemaTest extends TestCase
 
     public function testRunningQueries()
     {
-        $schema = $this->createValidTestSchema();
-        $query = 'query GetViewer { viewer { id email firstName lastName } }';
+        $schema = StarWarsSchema::getEpisodesSchema();
+        $query = 'query GetEpisodes { episodes { id title characters { id name } } }';
 
         $result = GraphQL::executeQuery($schema, $query);
 
@@ -33,7 +36,8 @@ class SchemaTest extends TestCase
 
     public function testEntityTypes()
     {
-        $schema = $this->createValidTestSchema();
+        $schema = StarWarsSchema::getEpisodesSchema();
+
         $entityTypes = $schema->getEntityTypes();
         $hasEntityTypes = $schema->hasEntityTypes();
 
@@ -45,7 +49,7 @@ class SchemaTest extends TestCase
 
     public function testDirectives()
     {
-        $schema = $this->createValidTestSchema();
+        $schema = StarWarsSchema::getEpisodesSchema();
         $directives = $schema->getDirectives();
 
         $this->assertArrayHasKey('key', $directives);
@@ -54,38 +58,13 @@ class SchemaTest extends TestCase
         $this->assertArrayHasKey('requires', $directives);
     }
 
-    private function createValidTestSchema()
+    public function testServiceSdl()
     {
-        $userType = new EntityObjectType([
-            'name' => 'User',
-            'keyFields' => ['id', 'email'],
-            'fields' => [
-                'id' => ['type' => Type::int()],
-                'email' => ['type' => Type::string()],
-                'firstName' => ['type' => Type::string()],
-                'lastName' => ['type' => Type::string()]
-            ]
-        ]);
+        $schema = StarWarsSchema::getEpisodesSchema();
+        $query = 'query GetServiceSdl { _service { sdl } }';
 
-        $queryType = new ObjectType([
-            'name' => 'Query',
-            'fields' => [
-                'viewer' => [
-                    'type' => $userType,
-                    'resolve' => function () {
-                        return [
-                            'id' => 1,
-                            'email' => 'bruce@wayneindustries.com',
-                            'firstName' => 'Bruce',
-                            'lastName' => 'Wayne'
-                        ];
-                    }
-                ]
-            ]
-        ]);
+        $result = GraphQL::executeQuery($schema, $query);
 
-        return new FederatedSchema([
-            'query' => $queryType
-        ]);
+        $this->assertMatchesSnapshot($result->toArray());
     }
 }
