@@ -104,19 +104,16 @@ class FederatedSchema extends Schema
     /** @var array */
     private function getQueryTypeConfig(array $config): array
     {
-        $queryTypeFields = array_merge(
-            $config['query']->getFields(),
+        $queryTypeConfig = $config['query']->config;
+
+        $queryTypeConfig['fields'] = array_merge(
+            $queryTypeConfig['fields'],
             $this->getQueryTypeServiceFieldConfig(),
             $this->getQueryTypeEntitiesFieldConfig()
         );
 
         return [
-            'query' => new ObjectType(
-                array_merge([
-                    'name' => 'Query',
-                    'fields' => $queryTypeFields
-                ])
-            )
+            'query' => new ObjectType($queryTypeConfig)
         ];
     }
 

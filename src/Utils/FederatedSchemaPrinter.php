@@ -57,13 +57,18 @@ class FederatedSchemaPrinter
         return self::printFilteredSchema(
             $schema,
             static function ($type) {
-                return !Directive::isSpecifiedDirective($type);
+                return !Directive::isSpecifiedDirective($type) && !self::isFederatedDirective($type);
             },
             static function ($type) {
                 return !Type::isBuiltInType($type);
             },
             $options
         );
+    }
+
+    public static function isFederatedDirective($type): bool
+    {
+        return in_array($type->name, ['key', 'provides', 'requires', 'external']);
     }
 
     /**
@@ -325,7 +330,7 @@ class FederatedSchemaPrinter
                 )
             : '';
 
-        $queryExtends = $type->name === 'Query' ? 'extends ' : '';
+        $queryExtends = $type->name === 'Query' ? 'extend ' : '';
 
         return self::printDescription($options, $type) .
             sprintf(
