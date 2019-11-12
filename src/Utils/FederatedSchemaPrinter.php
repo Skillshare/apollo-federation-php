@@ -365,7 +365,7 @@ class FederatedSchemaPrinter
         }
 
         $isEntityRef = $type instanceof EntityRefObjectType;
-        $extends = $isEntityRef ? 'extends ' : '';
+        $extends = $isEntityRef ? 'extend ' : '';
 
         return self::printDescription($options, $type) .
             sprintf(

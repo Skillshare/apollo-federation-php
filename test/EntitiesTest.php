@@ -42,7 +42,8 @@ class EntitiesTest extends TestCase
             'id' => 1,
             'email' => 'luke@skywalker.com',
             'firstName' => 'Luke',
-            'lastName' => 'Skywalker'
+            'lastName' => 'Skywalker',
+            '__typename' => 'User'
         ];
 
         $userType = new EntityObjectType([

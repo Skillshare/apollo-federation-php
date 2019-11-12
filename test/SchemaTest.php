@@ -92,8 +92,8 @@ class SchemaTest extends TestCase
         $schema = StarWarsSchema::getEpisodesSchema();
 
         $query = '
-            query GetEpisodes(\$representations: [_Any!]!) { 
-                _entities(representations: \$representations) {
+            query GetEpisodes($representations: [_Any!]!) { 
+                _entities(representations: $representations) {
                     ... on Episode {
                         id
                         title
