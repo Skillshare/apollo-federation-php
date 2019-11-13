@@ -2,10 +2,6 @@
 
 -
 
-### Product requirements
-
-- JIRA link:
-
 ### How to test
 
 -
