@@ -9,7 +9,7 @@
     },
     "scripts": {
         "test": "phpunit",
-        "sync": "yarn install && composer update",
+        "sync": "yarn install && composer install",
         "commit": "yarn commit"
     },
     "config": {
