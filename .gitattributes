@@ -1,0 +1,7 @@
+.gitattributes     export-ignore
+.github/           export-ignore
+.gitignore         export-ignore
+.prettierignore    export-ignore
+.prettierrc        export-ignore
+phpunit.xml.dist   export-ignore
+test/              export-ignore
