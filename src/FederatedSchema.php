@@ -105,6 +105,9 @@ class FederatedSchema extends Schema
     private function getQueryTypeConfig(array $config): array
     {
         $queryTypeConfig = $config['query']->config;
+        if (is_callable($queryTypeConfig['fields'])) {
+            $queryTypeConfig['fields'] = $queryTypeConfig['fields']();
+        }
 
         $queryTypeConfig['fields'] = array_merge(
             $queryTypeConfig['fields'],
