@@ -1,4 +1,4 @@
-name: yoodle
+name: User
 keyFields:
     - id
     - email
