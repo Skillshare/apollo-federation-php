@@ -123,9 +123,15 @@ class EntityObjectType extends ObjectType
 
     private static function validateFields(array $config)
     {
-        Utils::invariant(isset($config['fields']) && is_array($config['fields']), 'Fields must be specified.');
+        if (is_callable($config['fields'])) {
+            $fields = $config['fields']();
+        } else {
+            $fields = $config['fields'];
+        }
 
-        foreach ($config['fields'] as $field) {
+        Utils::invariant(isset($fields) && is_array($fields), 'Fields must be specified.');
+
+        foreach ($fields as $field) {
             if (isset($field['isExternal'])) {
                 Utils::invariant(is_bool($field['isExternal']), "Config property 'isExternal' should be a boolean.");
             }
@@ -142,6 +148,12 @@ class EntityObjectType extends ObjectType
 
     public static function validateKeyFields(array $config)
     {
+        if (is_callable($config['fields'])) {
+            $fields = $config['fields']();
+        } else {
+            $fields = $config['fields'];
+        }
+
         Utils::invariant(
             isset($config['keyFields']) && is_array($config['keyFields']),
             'Entity key fields must be provided and has to be an array.'
@@ -149,7 +161,7 @@ class EntityObjectType extends ObjectType
 
         foreach ($config['keyFields'] as $keyField) {
             Utils::invariant(
-                array_key_exists($keyField, $config['fields']),
+                array_key_exists($keyField, $fields),
                 'Entity key refers to a field that does not exist in the fields array.'
             );
         }

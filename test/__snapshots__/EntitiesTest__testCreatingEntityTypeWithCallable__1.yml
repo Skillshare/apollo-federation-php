@@ -1,0 +1,5 @@
+name: yoodle
+keyFields:
+    - id
+    - email
+fields: null
