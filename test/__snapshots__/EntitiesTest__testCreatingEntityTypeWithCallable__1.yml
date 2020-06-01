@@ -1,0 +1,5 @@
+name: User
+keyFields:
+    - id
+    - email
+fields: null

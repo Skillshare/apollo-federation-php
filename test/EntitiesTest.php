@@ -36,6 +36,27 @@ class EntitiesTest extends TestCase
         $this->assertMatchesSnapshot($userType->config);
     }
 
+    public function testCreatingEntityTypeWithCallable()
+    {
+        $userTypeKeyFields = ['id', 'email'];
+
+        $userType = new EntityObjectType([
+            'name' => 'User',
+            'keyFields' => $userTypeKeyFields,
+            'fields' => function () {
+                return [
+                    'id' => ['type' => Type::int()],
+                    'email' => ['type' => Type::string()],
+                    'firstName' => ['type' => Type::string()],
+                    'lastName' => ['type' => Type::string()]
+                ];
+            }
+        ]);
+
+        $this->assertEqualsCanonicalizing($userType->getKeyFields(), $userTypeKeyFields);
+        $this->assertMatchesSnapshot($userType->config);
+    }
+
     public function testResolvingEntityReference()
     {
         $expectedRef = [
