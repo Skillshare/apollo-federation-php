@@ -6,6 +6,7 @@ namespace Apollo\Federation\Types;
 
 use GraphQL\Utils\Utils;
 use GraphQL\Type\Definition\ObjectType;
+use GraphQL\Type\Definition\FieldDefinition;
 
 use array_key_exists;
 
@@ -123,36 +124,32 @@ class EntityObjectType extends ObjectType
 
     private static function validateFields(array $config)
     {
-        if (is_callable($config['fields'])) {
-            $fields = $config['fields']();
-        } else {
-            $fields = $config['fields'];
-        }
+        $fields = $config['fields'] ?? [];
+        $type = new ObjectType($config);
+        $fields = FieldDefinition::defineFieldMap($type, $fields);
 
         Utils::invariant(isset($fields) && is_array($fields), 'Fields must be specified.');
 
         foreach ($fields as $field) {
-            if (isset($field['isExternal'])) {
-                Utils::invariant(is_bool($field['isExternal']), "Config property 'isExternal' should be a boolean.");
+            if (isset($field->isExternal)) {
+                Utils::invariant(is_bool($field->isExternal), "Config property 'isExternal' should be a boolean.");
             }
 
-            if (isset($field['provides'])) {
-                Utils::invariant(is_string($field['provides']), "Config property 'provides' should be a string.");
+            if (isset($field->provides)) {
+                Utils::invariant(is_string($field->provides), "Config property 'provides' should be a string.");
             }
 
-            if (isset($field['requires'])) {
-                Utils::invariant(is_string($field['requires']), "Config property 'requires' should be a string.");
+            if (isset($field->requires)) {
+                Utils::invariant(is_string($field->requires), "Config property 'requires' should be a string.");
             }
         }
     }
 
     public static function validateKeyFields(array $config)
     {
-        if (is_callable($config['fields'])) {
-            $fields = $config['fields']();
-        } else {
-            $fields = $config['fields'];
-        }
+        $fields = $config['fields'] ?? [];
+        $type = new ObjectType($config);
+        $fields = FieldDefinition::defineFieldMap($type, $fields);
 
         Utils::invariant(
             isset($config['keyFields']) && is_array($config['keyFields']),
