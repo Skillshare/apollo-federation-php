@@ -86,55 +86,6 @@ class EntitiesTest extends TestCase
         $this->assertEquals($expectedRef, $actualRef);
     }
 
-    public function testCreatingEntityTypeWithoutKeyFields()
-    {
-        $this->expectException(InvariantViolation::class);
-        $this->expectExceptionMessage('Entity key fields must be provided and has to be an array.');
-
-        $userType = new EntityObjectType([
-            'name' => 'User',
-            'fields' => [
-                'id' => ['type' => Type::int()],
-                'email' => ['type' => Type::string()],
-                'firstName' => ['type' => Type::string()],
-                'lastName' => ['type' => Type::string()]
-            ]
-        ]);
-    }
-
-    public function testCreatingEntityTypeWithNonExistingKeyFields()
-    {
-        $this->expectException(InvariantViolation::class);
-        $this->expectExceptionMessage('Entity key refers to a field that does not exist in the fields array.');
-
-        $userType = new EntityObjectType([
-            'name' => 'User',
-            'keyFields' => ['id', 'email'],
-            'fields' => [
-                'email' => ['type' => Type::string()],
-                'firstName' => ['type' => Type::string()],
-                'lastName' => ['type' => Type::string()]
-            ]
-        ]);
-    }
-
-    public function testCreatingEntityTypeWithInvalidKeyFields()
-    {
-        $this->expectException(InvariantViolation::class);
-        $this->expectExceptionMessage('Entity key fields must be provided and has to be an array.');
-
-        $userType = new EntityObjectType([
-            'name' => 'User',
-            'keyFields' => 'id',
-            'fields' => [
-                'id' => ['type' => Type::int()],
-                'email' => ['type' => Type::string()],
-                'firstName' => ['type' => Type::string()],
-                'lastName' => ['type' => Type::string()]
-            ]
-        ]);
-    }
-
     public function testCreatingEntityRefType()
     {
         $userTypeKeyFields = ['id', 'email'];

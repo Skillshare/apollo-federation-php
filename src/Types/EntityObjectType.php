@@ -54,9 +54,6 @@ class EntityObjectType extends ObjectType
      */
     public function __construct(array $config)
     {
-        self::validateFields($config);
-        self::validateKeyFields($config);
-
         $this->keyFields = $config['keyFields'];
 
         if (isset($config['__resolveReference'])) {
@@ -119,52 +116,6 @@ class EntityObjectType extends ObjectType
         $refContainsKeys = count(array_intersect($this->getKeyFields(), $refKeys)) === count($this->getKeyFields());
 
         Utils::invariant($refContainsKeys, 'Key fields are missing from the entity reference.');
-    }
-
-    private static function validateFields(array $config)
-    {
-        if (is_callable($config['fields'])) {
-            $fields = $config['fields']();
-        } else {
-            $fields = $config['fields'];
-        }
-
-        Utils::invariant(isset($fields) && is_array($fields), 'Fields must be specified.');
-
-        foreach ($fields as $field) {
-            if (isset($field['isExternal'])) {
-                Utils::invariant(is_bool($field['isExternal']), "Config property 'isExternal' should be a boolean.");
-            }
-
-            if (isset($field['provides'])) {
-                Utils::invariant(is_string($field['provides']), "Config property 'provides' should be a string.");
-            }
-
-            if (isset($field['requires'])) {
-                Utils::invariant(is_string($field['requires']), "Config property 'requires' should be a string.");
-            }
-        }
-    }
-
-    public static function validateKeyFields(array $config)
-    {
-        if (is_callable($config['fields'])) {
-            $fields = $config['fields']();
-        } else {
-            $fields = $config['fields'];
-        }
-
-        Utils::invariant(
-            isset($config['keyFields']) && is_array($config['keyFields']),
-            'Entity key fields must be provided and has to be an array.'
-        );
-
-        foreach ($config['keyFields'] as $keyField) {
-            Utils::invariant(
-                array_key_exists($keyField, $fields),
-                'Entity key refers to a field that does not exist in the fields array.'
-            );
-        }
     }
 
     public static function validateResolveReference(array $config)
