@@ -6,6 +6,9 @@ Please note this is still in active development and it might introduce breaking 
 
 ## Usage
 
+To install latest package release:
+`composer require skillshare/apollo-federation-php:dev-master#99d1c8f8554e4eb3d5c5f70bb714fcb7de2dc5f4`
+
 ### Entity types
 
 An entity is a type that can be referenced by another service. Entities create connection points between services and form the basic building blocks of a federated graph. Entities have a primary key whose value uniquely identifies a specific instance of the type, similar to the function of a primary key in a SQL table.
