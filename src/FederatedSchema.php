@@ -110,7 +110,7 @@ class FederatedSchema extends Schema
         }
 
         $queryTypeConfig['fields'] = array_merge(
-            $queryTypeConfig,
+            $queryTypeConfig['fields'],
             $this->getQueryTypeServiceFieldConfig(),
             $this->getQueryTypeEntitiesFieldConfig()
         );
