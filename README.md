@@ -7,7 +7,7 @@ Please note this is still in active development and it might introduce breaking 
 ## Usage
 
 To install latest package release:
-`composer require skillshare/apollo-federation-php:dev-master#99d1c8f8554e4eb3d5c5f70bb714fcb7de2dc5f4`
+`composer require skillshare/apollo-federation-php:dev-master#a277025082eaa72a8b043106f64ebe8d2610be79`
 
 ### Entity types
 
