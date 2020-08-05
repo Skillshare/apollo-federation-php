@@ -28,6 +28,7 @@ type Location {
 
 type Query {
   episodes: [Episode!]!
+  deprecatedEpisodes: [Episode!]! @deprecated(reason: "Because you should use the other one.")
   _service: _Service!
   _entities(representations: [_Any!]!): [_Entity]
 }

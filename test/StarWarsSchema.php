@@ -91,6 +91,10 @@ class StarWarsSchema
                         'resolve' => function () {
                             return StarWarsData::getEpisodes();
                         }
+                    ],
+                    'deprecatedEpisodes' => [
+                        'type' => Type::nonNull(Type::listOf(Type::nonNull($episodeType))),
+                        'deprecationReason' => 'Because you should use the other one.'
                     ]
                 ]
             ]);
