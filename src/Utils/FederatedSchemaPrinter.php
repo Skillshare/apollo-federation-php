@@ -16,6 +16,7 @@ use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\UnionType;
 use GraphQL\Type\Introspection;
 use GraphQL\Type\Schema;
+use GraphQL\Utils\AST;
 use GraphQL\Utils\Utils;
 
 use Apollo\Federation\Types\EntityObjectType;
