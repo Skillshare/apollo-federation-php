@@ -320,6 +320,10 @@ class FederatedSchemaPrinter
      */
     private static function printObject(ObjectType $type, array $options): string
     {
+        if ($type->name === 'Mutation' && empty($type->getFields())) {
+            return '';
+        }
+
         $interfaces = $type->getInterfaces();
         $implementedInterfaces = !empty($interfaces)
             ? ' implements ' .
@@ -331,7 +335,7 @@ class FederatedSchemaPrinter
                 )
             : '';
 
-        $queryExtends = $type->name === 'Query' ? 'extend ' : '';
+        $queryExtends = $type->name === 'Query' || $type->name === 'Mutation' ? 'extend ' : '';
 
         return self::printDescription($options, $type) .
             sprintf(
