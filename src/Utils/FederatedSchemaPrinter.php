@@ -320,7 +320,7 @@ class FederatedSchemaPrinter
      */
     private static function printObject(ObjectType $type, array $options): string
     {
-        if ($type->name === 'Mutation' && empty($type->getFields())) {
+        if (empty($type->getFields())) {
             return '';
         }
 
