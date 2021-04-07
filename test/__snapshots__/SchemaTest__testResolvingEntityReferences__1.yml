@@ -1,5 +1,2 @@
 data:
-    _entities:
-        -
-            id: 1
-            title: 'A New Hope'
+    _entities: [{ id: 1, title: 'A New Hope' }]
