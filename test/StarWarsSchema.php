@@ -12,6 +12,7 @@ use GraphQL\Type\Definition\ObjectType;
 use Apollo\Federation\FederatedSchema;
 use Apollo\Federation\Types\EntityObjectType;
 use Apollo\Federation\Types\EntityRefObjectType;
+use GraphQL\Utils\Utils;
 
 class StarWarsSchema
 {
@@ -100,7 +101,25 @@ class StarWarsSchema
             ]);
 
             self::$episodesSchema = new FederatedSchema([
-                'query' => $queryType
+                'query' => $queryType,
+                'resolve' => function ($root, $args, $context, $info) {
+                    $foo = array_map(function ($ref) use ($context, $info) {
+ 
+                        $type = $info->schema->getType($ref['__typename']);
+                        Utils::invariant(
+                            $type && $type instanceof EntityObjectType,
+                            sprintf(
+                                'The _entities resolver tried to load an entity for type "%s", but no object type of that name was found in the schema',
+                                $type->name
+                            )
+                            );
+                        if (!$type->hasReferenceResolver()) {
+                            return $ref;
+                        }
+                        return $type->resolveReference($ref, $context, $info);
+                    }, $args['representations']);
+                    return $foo;
+                }
             ]);
         }
 
