@@ -116,4 +116,44 @@ class SchemaTest extends TestCase
         $this->assertCount(1, $result->data['_entities']);
         $this->assertMatchesSnapshot($result->toArray());
     }
+
+    public function testOverrideSchemaResolver()
+    {
+        $schema = DungeonsAndDragonsSchema::getSchema();
+
+        $query = '
+            query GetMonsters($representations: [_Any!]!) { 
+                _entities(representations: $representations) {
+                    ... on Monster {
+                        id
+                        name
+                        challengeRating
+                    }
+                } 
+            }
+        ';
+
+        $variables = [
+            'representations' => [
+                [
+                    '__typename' => 'Monster',
+                    'id' => 1
+                ],
+                [
+                    '__typename' => 'Monster',
+                    'id' => 2
+                ],
+                [
+                    '__typename' => 'Monster',
+                    'id' => 3
+                ],
+            ]
+        ];
+
+        $result = GraphQL::executeQuery($schema, $query, null, null, $variables);
+        var_dump($result->data);    
+        $this->assertCount(3, $result->data['_entities']);
+        $this->assertMatchesSnapshot($result->toArray());
+    }
 }
+ 

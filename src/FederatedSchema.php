@@ -115,6 +115,8 @@ class FederatedSchema extends Schema
             $this->getQueryTypeEntitiesFieldConfig($config)
         );
 
+        // var_dump($queryTypeConfig['fields']['_entities']['resolve'](null, ['representations' => [['__typename' => 'Monster', 'id' => 1]]], null, null));
+
         return [
             'query' => new ObjectType($queryTypeConfig)
         ];
@@ -177,7 +179,7 @@ class FederatedSchema extends Schema
                 ],
                 'resolve' => function ($root, $args, $context, $info) use ($config) {
                     if (isset($config['resolve'])) {
-                        return $config['resolve']($root, $args, $context, $info);
+                        return  $config['resolve']($root, $args, $context, $info);
                     } else {
                         return $this->resolve($root, $args, $context, $info);
                     }
@@ -206,7 +208,8 @@ class FederatedSchema extends Schema
                 return $ref;
             }
 
-            return $type->resolveReference($ref, $context, $info);
+            $r = $type->resolveReference($ref, $context, $info);
+            return $r;
         }, $args['representations']);
     }
     /**
