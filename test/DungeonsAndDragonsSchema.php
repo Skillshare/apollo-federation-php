@@ -11,16 +11,15 @@ use GraphQL\Type\Definition\ObjectType;
 
 use Apollo\Federation\FederatedSchema;
 use Apollo\Federation\Types\EntityObjectType;
-use Apollo\Federation\Types\EntityRefObjectType;
 
 class DungeonsAndDragonsSchema
 {
-    public static $episodesSchema;
+    public static $monstersSchema;
     public static $buffer = [];
 
     public static function getSchema(): FederatedSchema
     {
-        if (!self::$episodesSchema) {
+        if (!self::$monstersSchema) {
             $monsterType = new EntityObjectType([
                 'name' => 'Monster',
                 'description' => 'A Monster from the Monster Manual',
@@ -47,11 +46,14 @@ class DungeonsAndDragonsSchema
                 'fields' => [
                     'monsters' => [
                         'type' => Type::nonNull(Type::listOf(Type::nonNull($monsterType))),
+                        'resolve' => function() {
+                            return DungeonsAndDragonsData::getMonstersByIds(self::$buffer);
+                        }
                     ]
                 ]
             ]);
 
-            self::$episodesSchema = new FederatedSchema(
+            self::$monstersSchema = new FederatedSchema(
                 [
                     'query' => $queryType,
                     'resolve' =>  function ($root, $args, $context, $info) use ($monsterType) {
@@ -59,13 +61,12 @@ class DungeonsAndDragonsSchema
                             return $monsterType->resolveReference($ref);
                         }, $args['representations']);
                         $ms = DungeonsAndDragonsData::getMonstersByIds(self::$buffer);
-                        print_r($ms);
                         return $ms;
                     }
                 ]
             );
 
-            return self::$episodesSchema;
+            return self::$monstersSchema;
         }
     }
 }
