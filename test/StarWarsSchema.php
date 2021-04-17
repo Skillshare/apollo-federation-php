@@ -4,15 +4,12 @@ declare(strict_types=1);
 
 namespace Apollo\Federation\Tests;
 
-use Exception;
-
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\ObjectType;
 
 use Apollo\Federation\FederatedSchema;
 use Apollo\Federation\Types\EntityObjectType;
 use Apollo\Federation\Types\EntityRefObjectType;
-use GraphQL\Utils\Utils;
 
 class StarWarsSchema
 {

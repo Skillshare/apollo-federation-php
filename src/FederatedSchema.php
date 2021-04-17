@@ -115,8 +115,6 @@ class FederatedSchema extends Schema
             $this->getQueryTypeEntitiesFieldConfig($config)
         );
 
-        // var_dump($queryTypeConfig['fields']['_entities']['resolve'](null, ['representations' => [['__typename' => 'Monster', 'id' => 1]]], null, null));
-
         return [
             'query' => new ObjectType($queryTypeConfig)
         ];
