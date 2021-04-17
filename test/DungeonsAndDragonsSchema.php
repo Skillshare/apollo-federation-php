@@ -50,24 +50,20 @@ class DungeonsAndDragonsSchema
                     'challengeRating' => [
                         'type' => Type::nonNull(Type::int()),
                         'isExternal' => true
-                    ]
-                    ,
+                    ],
                     'skills' => [
-                        'type' => Type::nonNull(Type::listOf($skillType)),
-                        'resolve' => function () {
-                            
-                            $skills = DungeonsAndDragonsData::getSkillsByIds([0, 1]);
-
-                            return $skills;
+                        'type' => Type::nonNull(Type::listOf(Type::nonNull($skillType))),
+                        'resolve' => function ($root) {
+                            return  DungeonsAndDragonsData::getSkillsByIds($root['skills']);
                         }
                     ]
                 ],
                 'keyFields' => ['id'],
                 '__resolveReference' => function ($ref, $context, $info) {
                     $monster = DungeonsAndDragonsData::getMonsterById($ref["id"]);
-                    $typeDef = ['__typename' => 'Monster'];
+                    $typeName = ['__typename' => $ref['__typename']];
 
-                    return ['__typename' => 'Monster'] + $monster;
+                    return $typeName + $monster;
                 }
             ]);
 

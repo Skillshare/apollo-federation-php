@@ -49,11 +49,9 @@ class DungeonsAndDragonsData
 
     public static function getSkillsByIds(array $ids): array
     {
-        $result = array_filter(self::getSkills(), function ($skill) use ($ids) {
+        return array_filter(self::getSkills(), function ($skill) use ($ids) {
             return in_array($skill['id'], $ids);
         });
-
-        return array_values($result);
     }
 
     public static function getSkills()
@@ -79,6 +77,6 @@ class DungeonsAndDragonsData
             ];
         }
 
-        return self::$monsters;
+        return self::$skills;
     }
 }

@@ -122,6 +122,9 @@ class SchemaTest extends TestCase
                         id
                         name
                         challengeRating
+                        skills {
+                            name
+                        }
                     }
                 } 
             }
@@ -145,8 +148,8 @@ class SchemaTest extends TestCase
         ];
 
         $result = GraphQL::executeQuery($schema, $query, null, null, $variables);
-
-        var_dump($result->data);
+        
+        $this->assertNotNull($result->data);
         $this->assertCount(3, $result->data['_entities']);
         $this->assertMatchesSnapshot($result->toArray());
     }
