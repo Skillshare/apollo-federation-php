@@ -179,11 +179,9 @@ class FederatedSchema extends Schema
                 ],
                 'resolve' => function ($root, $args, $context, $info) use ($config) {
                     if (isset($config) && isset($config['resolve'])) {
-                        $result =  $config['resolve']($root, $args, $context, $info);
-                        return $result;
+                        return $config['resolve']($root, $args, $context, $info);;
                     } else {
-                        $result =  $this->resolve($root, $args, $context, $info);
-                        return $result;
+                        return $this->resolve($root, $args, $context, $info);
                     }
                 }
             ]
