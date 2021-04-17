@@ -1,2 +1,2 @@
 data:
-    _entities: [{ id: 1, name: Aboleth, challengeRating: 7, skills: [{ name: Perception }, { name: Stealth }] }, { id: 2, name: 'Adult Black Dragon', challengeRating: 14, skills: [{ name: Stealth }, { name: History }] }, { id: 3, name: Beholder, challengeRating: 1, skills: [{ name: History }, { name: Darkvision }] }]
+    _entities: [{ id: 1, name: Aboleth, skills: [{ name: Perception }, { name: Stealth }] }, { id: 2, name: 'Adult Black Dragon', skills: [{ name: Stealth }, { name: History }] }, { id: 3, name: Beholder, skills: [{ name: History }, { name: Darkvision }] }]

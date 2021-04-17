@@ -121,7 +121,6 @@ class SchemaTest extends TestCase
                     ... on Monster {
                         id
                         name
-                        challengeRating
                         skills {
                             name
                         }
@@ -150,7 +149,20 @@ class SchemaTest extends TestCase
         $result = GraphQL::executeQuery($schema, $query, null, null, $variables);
         
         $this->assertNotNull($result->data);
-        $this->assertCount(3, $result->data['_entities']);
+        
+        $entities = $result->data['_entities'];
+        $this->assertCount(3, $entities);
+        
+        $entity = $entities[0];
+        foreach ($entities as $entity) {
+            $this->assertArrayHasKey('id', $entity);
+            $this->assertArrayHasKey('name', $entity);
+            $this->assertArrayNotHasKey('characterRating', $entity);
+            $this->assertArrayHasKey('skills', $entity);
+
+            $this->assertCount(2, $entity['skills']);
+        }
+
         $this->assertMatchesSnapshot($result->toArray());
     }
 }
