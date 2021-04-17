@@ -18,6 +18,7 @@ use Apollo\Federation\Types\EntityObjectType;
 use Apollo\Federation\Types\EntityRefObjectType;
 
 use Apollo\Federation\Tests\StarWarsSchema;
+use Apollo\Federation\Tests\MockPromiseAdapter;
 
 class SchemaTest extends TestCase
 {
@@ -127,7 +128,6 @@ class SchemaTest extends TestCase
                     ... on Monster {
                         id
                         name
-                        challengeRating
                     }
                 } 
             }
@@ -150,10 +150,27 @@ class SchemaTest extends TestCase
             ]
         ];
 
-        $result = GraphQL::executeQuery($schema, $query, null, null, $variables);
-        var_dump($result->data);    
-        $this->assertCount(3, $result->data['_entities']);
-        $this->assertMatchesSnapshot($result->toArray());
+        //$result = GraphQL::executeQuery($schema, $query, null, null, $variables);
+        $promiseAdapter = new MockPromiseAdapter();
+
+        $promise = GraphQL::promiseToExecute(
+            $promiseAdapter,
+            $schema, 
+            $query, 
+            $rootValue = null, 
+            $contextValue = null, 
+            $variables
+        );
+
+        $promise->then(function(ExecutionResult $result) {
+            var_dump($result);
+            
+            return $result->toArray();
+        });
+        
+        //var_dump($result->data);
+        //$this->assertCount(3, $result->data['_entities']);
+        //$this->assertMatchesSnapshot($result->toArray());
     }
 }
  

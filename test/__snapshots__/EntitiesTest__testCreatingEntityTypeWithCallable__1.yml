@@ -2,4 +2,4 @@ name: User
 keyFields:
     - id
     - email
-fields: {  }
+fields: null

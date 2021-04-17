@@ -9,20 +9,22 @@ class DungeonsAndDragonsData
     private static $monsters;
 
 
-    public static function getMonsterById($id)
+    public static function getMonsterById(int $id): array
     {
-        $matches = array_filter(self::getMonsters(), function ($episode) use ($id) {
-            return $episode['id'] === $id;
+        $matches = array_filter(self::getMonsters(), function ($monster) use ($id) {
+            return $monster['id'] === $id;
         });
 
-        return $matches[0];
+        return array_values($matches)[0];
     }
 
-    public static function getMonstersByIds($ids)
+    public static function getMonstersByIds(array $ids): array
     {
-        return array_filter(self::getMonsters(), function ($monster) use ($ids) {
+        $matches = array_filter(self::getMonsters(), function ($monster) use ($ids) {
             return in_array($monster['id'], $ids);
         });
+
+        return $matches;
     }
 
     public static function getMonsters()

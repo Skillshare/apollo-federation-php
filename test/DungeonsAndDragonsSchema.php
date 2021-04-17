@@ -25,17 +25,20 @@ class DungeonsAndDragonsSchema
                 'description' => 'A Monster from the Monster Manual',
                 'fields' => [
                     'id' => [
-                        'type' => Type::nonNull(Type::int())
+                        'type' => Type::nonNull(Type::int()),
+                        'isExternal' => true
                     ],
                     'name' => [
-                        'type' => Type::nonNull(Type::string())
+                        'type' => Type::nonNull(Type::string()),
+                        'isExternal' => true
                     ],
                     'challengeRating' => [
                         'type' => Type::nonNull(Type::int()),
+                        'isExternal' => true
                     ]
                 ],
                 'keyFields' => ['id'],
-                '__resolveReference' => function ($ref) {
+                '__resolveReference' => function ($ref, $context, $info) {
                     array_push(self::$buffer, $ref["id"]);
                     return $ref;
                 }
@@ -47,7 +50,7 @@ class DungeonsAndDragonsSchema
                     'monsters' => [
                         'type' => Type::nonNull(Type::listOf(Type::nonNull($monsterType))),
                         'resolve' => function() {
-                            return DungeonsAndDragonsData::getMonstersByIds(self::$buffer);
+                            return DungeonsAndDragonsData::getMonsters();
                         }
                     ]
                 ]
@@ -60,8 +63,9 @@ class DungeonsAndDragonsSchema
                         array_map(function ($ref) use ($monsterType) {
                             return $monsterType->resolveReference($ref);
                         }, $args['representations']);
-                        $ms = DungeonsAndDragonsData::getMonstersByIds(self::$buffer);
-                        return $ms;
+
+                        $monsters = DungeonsAndDragonsData::getMonstersByIds(self::$buffer);
+                        return $monsters;
                     }
                 ]
             );
