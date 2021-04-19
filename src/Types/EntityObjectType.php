@@ -47,7 +47,7 @@ class EntityObjectType extends ObjectType
     private $keyFields;
 
     /** @var callable */
-    public $referenceResolver;
+    private $referenceResolver;
 
     /**
      * @param mixed[] $config
