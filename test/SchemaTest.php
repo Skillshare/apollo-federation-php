@@ -12,6 +12,7 @@ use GraphQL\Type\Definition\Type;
 use GraphQL\Utils\SchemaPrinter;
 
 use Apollo\Federation\Tests\StarWarsSchema;
+use Apollo\Federation\Tests\DungeonsAndDragonsSchema;
 
 class SchemaTest extends TestCase
 {
