@@ -114,55 +114,32 @@ class SchemaTest extends TestCase
 
     public function testOverrideSchemaResolver()
     {
-        $schema = DungeonsAndDragonsSchema::getSchema();
+        $schema = StarWarsSchema::getEpisodesSchemaCustomResolver();
 
         $query = '
-            query GetMonsters($representations: [_Any!]!) { 
+            query GetEpisodes($representations: [_Any!]!) {
                 _entities(representations: $representations) {
-                    ... on Monster {
+                    ... on Episode {
                         id
-                        name
-                        skills {
-                            name
-                        }
+                        title
                     }
-                } 
+                }
             }
         ';
 
         $variables = [
             'representations' => [
                 [
-                    '__typename' => 'Monster',
+                    '__typename' => 'Episode',
                     'id' => 1
-                ],
-                [
-                    '__typename' => 'Monster',
-                    'id' => 2
-                ],
-                [
-                    '__typename' => 'Monster',
-                    'id' => 3
-                ],
+                ]
             ]
         ];
 
         $result = GraphQL::executeQuery($schema, $query, null, null, $variables);
-        $this->assertNotNull($result->data);
-        
-        $entities = $result->data['_entities'];
-        $this->assertCount(3, $entities);
-        
-        $entity = $entities[0];
-        foreach ($entities as $entity) {
-            $this->assertArrayHasKey('id', $entity);
-            $this->assertArrayHasKey('name', $entity);
-            $this->assertArrayNotHasKey('characterRating', $entity);
-            $this->assertArrayHasKey('skills', $entity);
-
-            $this->assertCount(2, $entity['skills']);
-        }
-
+        // The custom resolver for this schema, always adds 1 to the id and gets the next
+        // episode for the sake of testing the ability to change the resolver in the configuration
+        $this->assertEquals("The Empire Strikes Back", $result->data['_entities'][0]["title"]);
         $this->assertMatchesSnapshot($result->toArray());
     }
 }
