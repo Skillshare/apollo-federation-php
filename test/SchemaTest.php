@@ -147,7 +147,6 @@ class SchemaTest extends TestCase
         ];
 
         $result = GraphQL::executeQuery($schema, $query, null, null, $variables);
-        
         $this->assertNotNull($result->data);
         
         $entities = $result->data['_entities'];

@@ -154,10 +154,7 @@ class FederatedSchema extends Schema
 
         $entityType = new UnionType([
             'name' => '_Entity',
-            'types' => array_values($this->getEntityTypes()),
-            'resolveType' => function ($objectValue, $context, $info) {
-                return $objectValue['__typename'];
-            }
+            'types' => array_values($this->getEntityTypes())
         ]);
 
         $anyType = new CustomScalarType([

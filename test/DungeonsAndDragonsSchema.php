@@ -60,10 +60,7 @@ class DungeonsAndDragonsSchema
                 ],
                 'keyFields' => ['id'],
                 '__resolveReference' => function ($ref, $context, $info) {
-                    $monster = DungeonsAndDragonsData::getMonsterById($ref["id"]);
-                    $typeName = ['__typename' => $ref['__typename']];
-
-                    return $typeName + $monster;
+                    return DungeonsAndDragonsData::getMonsterById($ref["id"]);
                 }
             ]);
 
