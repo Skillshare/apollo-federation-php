@@ -1,4 +1,4 @@
-<?php return 'directive @key(fields: String!) on OBJECT | INTERFACE
+directive @key(fields: String!) on OBJECT | INTERFACE
 
 directive @external on FIELD_DEFINITION
 
@@ -40,4 +40,3 @@ union _Entity = Episode | Character | Location
 type _Service {
   sdl: String
 }
-';

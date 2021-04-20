@@ -17,8 +17,7 @@ class StarWarsData
         $matches = array_filter(self::getEpisodes(), function ($episode) use ($id) {
             return $episode['id'] === $id;
         });
-
-        return $matches[0];
+        return reset($matches);
     }
 
     public static function getEpisodes()

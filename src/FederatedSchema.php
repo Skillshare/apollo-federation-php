@@ -65,7 +65,7 @@ class FederatedSchema extends Schema
         $this->entityTypes = $this->extractEntityTypes($config);
         $this->entityDirectives = Directives::getDirectives();
 
-        $config = array_merge($config, $this->getEntityDirectivesConfig(), $this->getQueryTypeConfig($config));
+        $config = array_merge($config, $this->getEntityDirectivesConfig($config), $this->getQueryTypeConfig($config));
 
         parent::__construct($config);
     }
@@ -93,7 +93,7 @@ class FederatedSchema extends Schema
     /**
      * @return Directive[]
      */
-    private function getEntityDirectivesConfig(): array
+    private function getEntityDirectivesConfig(array $config): array
     {
         $directives = isset($config['directives']) ? $config['directives'] : [];
         $config['directives'] = array_merge($directives, $this->entityDirectives);
@@ -112,7 +112,7 @@ class FederatedSchema extends Schema
         $queryTypeConfig['fields'] = array_merge(
             $queryTypeConfig['fields'],
             $this->getQueryTypeServiceFieldConfig(),
-            $this->getQueryTypeEntitiesFieldConfig()
+            $this->getQueryTypeEntitiesFieldConfig($config)
         );
 
         return [
@@ -146,7 +146,7 @@ class FederatedSchema extends Schema
     }
 
     /** @var array */
-    private function getQueryTypeEntitiesFieldConfig(): array
+    private function getQueryTypeEntitiesFieldConfig(?array $config): array
     {
         if (!$this->hasEntityTypes()) {
             return [];
@@ -172,32 +172,41 @@ class FederatedSchema extends Schema
                         'type' => Type::nonNull(Type::listOf(Type::nonNull($anyType)))
                     ]
                 ],
-                'resolve' => function ($root, $args, $context, $info) {
-                    return array_map(function ($ref) use ($context, $info) {
-                        Utils::invariant(isset($ref['__typename']), 'Type name must be provided in the reference.');
-
-                        $typeName = $ref['__typename'];
-                        $type = $info->schema->getType($typeName);
-
-                        Utils::invariant(
-                            $type && $type instanceof EntityObjectType,
-                            sprintf(
-                                'The _entities resolver tried to load an entity for type "%s", but no object type of that name was found in the schema',
-                                $type->name
-                            )
-                        );
-
-                        if (!$type->hasReferenceResolver()) {
-                            return $ref;
-                        }
-
-                        return $type->resolveReference($ref, $context, $info);
-                    }, $args['representations']);
+                'resolve' => function ($root, $args, $context, $info) use ($config) {
+                    if (isset($config) && isset($config['resolve']) && is_callable($config['resolve'])) {
+                        return $config['resolve']($root, $args, $context, $info);;
+                    } else {
+                        return $this->resolve($root, $args, $context, $info);
+                    }
                 }
             ]
         ];
     }
 
+    private function resolve($root, $args, $context, $info)
+    {
+        return array_map(function ($ref) use ($context, $info) {
+            Utils::invariant(isset($ref['__typename']), 'Type name must be provided in the reference.');
+
+            $typeName = $ref['__typename'];
+            $type = $info->schema->getType($typeName);
+
+            Utils::invariant(
+                $type && $type instanceof EntityObjectType,
+                sprintf(
+                    'The _entities resolver tried to load an entity for type "%s", but no object type of that name was found in the schema',
+                    $type->name
+                )
+            );
+
+            if (!$type->hasReferenceResolver()) {
+                return $ref;
+            }
+
+            $r = $type->resolveReference($ref, $context, $info);
+            return $r;
+        }, $args['representations']);
+    }
     /**
      * @param array $config
      *

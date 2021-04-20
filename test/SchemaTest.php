@@ -9,15 +9,10 @@ use Spatie\Snapshots\MatchesSnapshots;
 
 use GraphQL\GraphQL;
 use GraphQL\Type\Definition\Type;
-use GraphQL\Type\Definition\ObjectType;
-use GraphQL\Error\InvariantViolation;
 use GraphQL\Utils\SchemaPrinter;
 
-use Apollo\Federation\FederatedSchema;
-use Apollo\Federation\Types\EntityObjectType;
-use Apollo\Federation\Types\EntityRefObjectType;
-
 use Apollo\Federation\Tests\StarWarsSchema;
+use Apollo\Federation\Tests\DungeonsAndDragonsSchema;
 
 class SchemaTest extends TestCase
 {
@@ -116,4 +111,36 @@ class SchemaTest extends TestCase
         $this->assertCount(1, $result->data['_entities']);
         $this->assertMatchesSnapshot($result->toArray());
     }
+
+    public function testOverrideSchemaResolver()
+    {
+        $schema = StarWarsSchema::getEpisodesSchemaCustomResolver();
+
+        $query = '
+            query GetEpisodes($representations: [_Any!]!) {
+                _entities(representations: $representations) {
+                    ... on Episode {
+                        id
+                        title
+                    }
+                }
+            }
+        ';
+
+        $variables = [
+            'representations' => [
+                [
+                    '__typename' => 'Episode',
+                    'id' => 1
+                ]
+            ]
+        ];
+
+        $result = GraphQL::executeQuery($schema, $query, null, null, $variables);
+        // The custom resolver for this schema, always adds 1 to the id and gets the next
+        // episode for the sake of testing the ability to change the resolver in the configuration
+        $this->assertEquals("The Empire Strikes Back", $result->data['_entities'][0]["title"]);
+        $this->assertMatchesSnapshot($result->toArray());
+    }
 }
+ 

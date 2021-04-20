@@ -3,7 +3,5 @@ keyFields:
     - id
     - email
 fields:
-    id:
-        type: null
-    email:
-        type: null
+    id: { type: { name: Int, description: "The `Int` scalar type represents non-fractional signed whole numeric\nvalues. Int can represent values between -(2^31) and 2^31 - 1. ", astNode: null, extensionASTNodes: null, config: {  } } }
+    email: { type: { name: String, description: "The `String` scalar type represents textual data, represented as UTF-8\ncharacter sequences. The String type is most often used by GraphQL to\nrepresent free-form human-readable text.", astNode: null, extensionASTNodes: null, config: {  } } }
