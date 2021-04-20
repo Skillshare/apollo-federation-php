@@ -146,7 +146,7 @@ class FederatedSchema extends Schema
     }
 
     /** @var array */
-    private function getQueryTypeEntitiesFieldConfig($config): array
+    private function getQueryTypeEntitiesFieldConfig(?array $config): array
     {
         if (!$this->hasEntityTypes()) {
             return [];
