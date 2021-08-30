@@ -97,7 +97,9 @@ class EntityObjectType extends ObjectType
         $this->validateReferenceKeys($ref);
 
         $entity = ($this->referenceResolver)($ref, $context, $info);
-        
+
+        $entity['__typename'] = $ref['__typename'];
+
         return $entity;
     }
 
