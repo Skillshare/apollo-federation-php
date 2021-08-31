@@ -81,5 +81,35 @@ class SchemaTest extends TestCase
 
         $this->assertMatchesSnapshot($schemaSdl);
     }
+
+    public function testResolvingEntityReferences()
+    {
+        $schema = StarWarsSchema::getEpisodesSchema();
+
+
+        $query = '
+            query GetEpisodes($representations: [_Any!]!) {
+                _entities(representations: $representations) {
+                    ... on Episode {
+                        id
+                        title
+                    }
+                }
+            }
+        ';
+
+        $variables = [
+            'representations' => [
+                [
+                    '__typename' => 'Episode',
+                    'id' => 1,
+                ]
+            ]
+        ];
+
+        $result = GraphQL::executeQuery($schema, $query, null, null, $variables);
+        $this->assertCount(1, $result->data['_entities']);
+        $this->assertMatchesSnapshot($result->toArray());
+    }
 }
  
