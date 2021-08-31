@@ -86,14 +86,15 @@ class SchemaTest extends TestCase
     {
         $schema = StarWarsSchema::getEpisodesSchema();
 
+
         $query = '
-            query GetEpisodes($representations: [_Any!]!) { 
+            query GetEpisodes($representations: [_Any!]!) {
                 _entities(representations: $representations) {
                     ... on Episode {
                         id
                         title
                     }
-                } 
+                }
             }
         ';
 
@@ -101,13 +102,12 @@ class SchemaTest extends TestCase
             'representations' => [
                 [
                     '__typename' => 'Episode',
-                    'id' => 1
+                    'id' => 1,
                 ]
             ]
         ];
 
         $result = GraphQL::executeQuery($schema, $query, null, null, $variables);
-
         $this->assertCount(1, $result->data['_entities']);
         $this->assertMatchesSnapshot($result->toArray());
     }
