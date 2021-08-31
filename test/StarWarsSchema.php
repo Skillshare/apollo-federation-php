@@ -89,9 +89,9 @@ class StarWarsSchema
             'keyFields' => ['id'],
             '__resolveReference' => function ($ref) {
                 // print_r($ref);
-                $entity = [];
+                $entity = StarWarsData::getEpisodeById($ref['id']);
                 $entity["__typename"] = "Episode";
-                return array_merge($entity,StarWarsData::getEpisodeById($ref['id']));
+                return $entity;
             }
         ]);
     }
