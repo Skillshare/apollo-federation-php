@@ -26,6 +26,24 @@ class StarWarsSchema
         return self::$episodesSchema;
     }
 
+    public static function getEpisodesSchemaCustomResolver(): FederatedSchema
+    {
+        if (!self::$overRiddedEpisodesSchema) {
+            self::$overRiddedEpisodesSchema = new FederatedSchema([
+                'query' => self::getQueryType(),
+                'resolve' =>  function ($root, $args, $context, $info) {
+                    return array_map(function ($ref) use ($info) {
+                        $typeName = $ref['__typename'];
+                        $type = $info->schema->getType($typeName);
+                        $ref["id"] = $ref["id"] + 1;
+                        return $type->resolveReference($ref);
+                    }, $args['representations']);
+                }
+            ]);
+        }
+        return self::$overRiddedEpisodesSchema;
+    }
+
     private static function getQueryType(): ObjectType
     {
         $episodeType = self::getEpisodeType();
