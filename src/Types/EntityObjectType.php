@@ -113,7 +113,7 @@ class EntityObjectType extends ObjectType
         $refKeys = array_keys($ref);
         $refContainsKeys = !empty(array_intersect($this->getKeyFields(), $refKeys));
 
-        Utils::invariant($refContainsKeys, 'At least one key field must be in the entity reference.');
+        Utils::invariant($refContainsKeys, 'Key fields are missing from the entity reference.');
     }
 
     public static function validateResolveReference(array $config)

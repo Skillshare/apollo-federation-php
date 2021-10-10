@@ -86,6 +86,56 @@ class EntitiesTest extends TestCase
         $this->assertEquals($expectedRef, $actualRef);
     }
 
+    public function testResolvingEntityReferenceWithoutAllKeys()
+    {
+        $expectedRef = [
+            'id' => 1,
+            'email' => 'luke@skywalker.com',
+            'firstName' => 'Luke',
+            'lastName' => 'Skywalker',
+            '__typename' => 'User'
+        ];
+
+        $userType = new EntityObjectType([
+            'name' => 'User',
+            'keyFields' => ['id', 'email'],
+            'fields' => [
+                'id' => ['type' => Type::int()],
+                'email' => ['type' => Type::string()],
+                'firstName' => ['type' => Type::string()],
+                'lastName' => ['type' => Type::string()]
+            ],
+            '__resolveReference' => function () use ($expectedRef) {
+                return $expectedRef;
+            }
+        ]);
+
+        $actualRef = $userType->resolveReference(['email' => 'luke@skywalker.com', '__typename' => 'User']);
+
+        $this->assertEquals($expectedRef, $actualRef);
+    }
+
+    public function testResolvingEntityReferenceWithoutAnyKeys()
+    {
+        $userType = new EntityObjectType([
+            'name' => 'User',
+            'keyFields' => ['id', 'email'],
+            'fields' => [
+                'id' => ['type' => Type::int()],
+                'email' => ['type' => Type::string()],
+                'firstName' => ['type' => Type::string()],
+                'lastName' => ['type' => Type::string()]
+            ],
+            '__resolveReference' => function () {
+                return null;
+            }
+        ]);
+
+        $this->expectException(InvariantViolation::class);
+
+        $userType->resolveReference(['__typename' => 'User']);
+    }
+
     public function testCreatingEntityRefType()
     {
         $userTypeKeyFields = ['id', 'email'];
