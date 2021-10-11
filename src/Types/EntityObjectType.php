@@ -111,7 +111,7 @@ class EntityObjectType extends ObjectType
         Utils::invariant(isset($ref['__typename']), 'Type name must be provided in the reference.');
 
         $refKeys = array_keys($ref);
-        $refContainsKeys = count(array_intersect($this->getKeyFields(), $refKeys)) === count($this->getKeyFields());
+        $refContainsKeys = !empty(array_intersect($this->getKeyFields(), $refKeys));
 
         Utils::invariant($refContainsKeys, 'Key fields are missing from the entity reference.');
     }
