@@ -1,6 +1,6 @@
 {
     "name": "skillshare/apollo-federation-php",
-    "description": "A PHP port of Apollo Federation",
+    "description": "A PHP port of the Apollo Federation specification.",
     "type": "library",
     "license": "MIT",
     "require": {
