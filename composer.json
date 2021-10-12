@@ -1,8 +1,12 @@
 {
     "name": "skillshare/apollo-federation-php",
-    "description": "A PHP port of the Apollo Federation specification.",
+    "description": "A PHP port of Apollo Federation",
     "type": "library",
     "license": "MIT",
+    "require": {
+        "php": "^7.1||^8.0",
+        "webonyx/graphql-php": "^0.13.8 || ^14.0"
+    },
     "scripts": {
         "test": "phpunit",
         "sync": "yarn install && composer update",
@@ -11,16 +15,6 @@
     "config": {
         "preferred-install": "dist",
         "sort-packages": true
-    },
-    "require": {
-        "php": "^7.1||^8.0",
-        "webonyx/graphql-php": "^14.9"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^8.4",
-        "psr/http-message": "^1.0",
-        "react/promise": "^2.7",
-        "spatie/phpunit-snapshot-assertions": "^4.2"
     },
     "autoload": {
         "psr-4": {
@@ -31,5 +25,11 @@
         "psr-4": {
             "Apollo\\Federation\\Tests\\": "test/"
         }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^8.4",
+        "psr/http-message": "^1.0",
+        "react/promise": "^2.7",
+        "spatie/phpunit-snapshot-assertions": "^4.2"
     }
 }
