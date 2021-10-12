@@ -1,19 +1,20 @@
-# Apollo Federation for PHP
+# Apollo Federation PHP
 
-This package contains classes and utilities for [`webonyx/graphql-php`](https://github.com/webonyx/graphql-php) for creating GraphQL schemas following the Apollo Federation specification, allowing to create GraphQL microservices that can be combined into a single endpoint by tools like the Apollo Gateway.
+This package provides classes and utilities for [`webonyx/graphql-php`](https://github.com/webonyx/graphql-php) for creating [federated GraphQL subgraphs](https://www.apollographql.com/docs/federation/#subgraph-schemas) in PHP to be consumed by the Apollo Gateway.
 
-Please note this is still in active development and it might introduce breaking changes.
+> ⚠️ **IMPORTANT:** This package is still in active development and it might introduce breaking changes.
 
 ## Usage
 
-To install latest package release:
-`composer require skillshare/apollo-federation-php:dev-master#a277025082eaa72a8b043106f64ebe8d2610be79`
+Via composer:
 
-### Entity types
+```
+composer require skillshare/apollo-federation-php
+```
 
-An entity is a type that can be referenced by another service. Entities create connection points between services and form the basic building blocks of a federated graph. Entities have a primary key whose value uniquely identifies a specific instance of the type, similar to the function of a primary key in a SQL table.
+### Entities
 
-Creating an entity is done via the `EntityObjectType` and it takes the same configuration as the default `ObjectType` in addition of a `keyFields` and `__resolveReference` configuration properties. 
+An entity is an object type that you define canonically in one subgraph and can then reference and extend in other subgraphs. It can be defined via the `EntityObjectType` which takes the same configuration as the default `ObjectType` plus a `keyFields` and `__resolveReference` properties. 
 
 ```php
 use Apollo\Federation\Types\EntityObjectType;
@@ -27,21 +28,21 @@ $userType = new EntityObjectType([
         'firstName' => ['type' => Type::string()],
         'lastName' => ['type' => Type::string()]
     ],
-    '__resolveReference' => function ($ref) {
-        // .. fetch data from the db.
+    '__resolveReference' => static function ($ref) {
+        // .. fetch from a data source.
     }
 ]);
 ```
 
-* `keyFields` — determine which fields serve as the unique identifier of the entity.
+* `keyFields` — defines the entity's primary key, which consists of one or more of the type's. An entity's key cannot include fields that return a union or interface.
 
-* `__resolveReference` — reference resolvers are a special addition to Apollo Server that allow individual types to be resolved by a reference from another service. They are called when a query references an entity across service boundaries. To learn more about `__resolveReference`, see the [API docs](https://www.apollographql.com/docs/apollo-server/api/apollo-federation).
+* `__resolveReference` — resolves the representation of the entity from the provided reference. Subgraphs use representations to reference entities from other subgraphs. A representation requires only an explicit __typename definition and values for the entity's primary key fields.
 
-### Entity reference types
+For more detail on entities, [see the official docs.](https://www.apollographql.com/docs/federation/entities)
 
-An entity reference is a type that refers to an entity on another service and only contain enough data so the Apollo Gateway can resolve it, typically the keys.
+### Entity references
 
-Creating an entity reference is done via the `EntityRefObjectType` and takes the same configuration values as the base `EntityObjectType` class.
+A subgraph can reference entities from another subgraph by defining a stub including just enough information to know how to interact with the referenced entity. Entity references are created via the `EntityRefObjectType` which takes the same configuration as the base `EntityObjectType`.
 
 ```php
 use Apollo\Federation\Types\EntityRefObjectType;
@@ -56,9 +57,11 @@ $userType = new EntityRefObjectType([
 ]);
 ```
 
-### Type fields
+For more detail on entity references, [see the official docs.](https://www.apollographql.com/docs/federation/entities/#referencing)
 
-In addition to creating entities and references, fields in object types can be configured with Apollo Federation-specific settings. [Refer to the docs for more info](https://www.apollographql.com/docs/apollo-server/federation/federation-spec).
+### Extending
+
+A subgraph can add fields to an entity that's defined in another subgraph. This is called extending the entity. When a subgraph extends an entity, the entity's originating subgraph is not aware of the added fields. Only the extending subgraph (along with the gateway) knows about these fields.
 
 ```php
 use Apollo\Federation\Types\EntityRefObjectType;
@@ -79,13 +82,13 @@ $userType = new EntityRefObjectType([
 ]);
 ```
 
-The following are all the configuration settings supported (click on each one to see the docs.)
+The subgraph can extend using the following configuration properties:
 
-* **[`isExternal`](https://www.apollographql.com/docs/apollo-server/federation/federation-spec/#external) —** marks a field as owned by another service.
+* **[`isExternal`](https://www.apollographql.com/docs/apollo-server/federation/federation-spec/#external) —** marks a field as owned by another service. This allows service A to use fields from service B while also knowing at runtime the types of that field.
 
-* **[`provides`](https://www.apollographql.com/docs/apollo-server/federation/federation-spec/#provides) —** annotates the expected returned fieldset from a field on a base type that is guaranteed to be selectable by the gateway.
+* **[`provides`](https://www.apollographql.com/docs/apollo-server/federation/federation-spec/#provides) —** used to annotate the expected returned fieldset from a field on a base type that is guaranteed to be selectable by the gateway.
 
-* **[`requires`](https://www.apollographql.com/docs/apollo-server/federation/federation-spec/#requires) —** annotates the required input fieldset from a base type for a resolver. It is used to develop a query plan where the required fields may not be needed by the client, but the service may need additional information from other services.
+* **[`requires`](https://www.apollographql.com/docs/apollo-server/federation/federation-spec/#requires) —** used to annotate the required input fieldset from a base type for a resolver. It is used to develop a query plan where the required fields may not be needed by the client, but the service may need additional information from other services.
 
 ### Federated schema
 
@@ -101,3 +104,7 @@ $query = 'query GetServiceSDL { _service { sdl } }';
 
 $result = GraphQL::executeQuery($schema, $query);
 ```
+
+## Disclaimer
+
+Documentation in this project include content quoted directly from the [Apollo official documentation](https://www.apollographql.com/docs) to reduce redundancy.
