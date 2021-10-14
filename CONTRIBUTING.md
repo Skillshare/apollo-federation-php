@@ -20,4 +20,4 @@ We'd also love PRs. If you're thinking of a large PR, we advise opening up an is
 1. Push to your fork and submit a pull request.
 1. Pat your self on the back and wait for your pull request to be reviewed and merged.
 
-Work in Progress pull requests are also welcome to get feedback early on, or if there is something blocked you.
+Work in Progress pull requests are also welcome to get feedback early on, or if there is something blocking you.
