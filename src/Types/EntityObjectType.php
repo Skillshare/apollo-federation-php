@@ -109,11 +109,6 @@ class EntityObjectType extends ObjectType
     private function validateReferenceKeys($ref)
     {
         Utils::invariant(isset($ref['__typename']), 'Type name must be provided in the reference.');
-
-        $refKeys = array_keys($ref);
-        $refContainsKeys = !empty(array_intersect($this->getKeyFields(), $refKeys));
-
-        Utils::invariant($refContainsKeys, 'Key fields are missing from the entity reference.');
     }
 
     public static function validateResolveReference(array $config)
