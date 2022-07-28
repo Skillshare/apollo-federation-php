@@ -32,6 +32,7 @@ declare(strict_types=1);
 
 namespace Apollo\Federation\Utils;
 
+use Apollo\Federation\Enum\DirectiveEnum;
 use GraphQL\Error\Error;
 use GraphQL\Language\Printer;
 use GraphQL\Type\Definition\Directive;
@@ -97,7 +98,7 @@ class FederatedSchemaPrinter
 
     public static function isFederatedDirective($type): bool
     {
-        return in_array($type->name, ['key', 'provides', 'requires', 'external']);
+        return \in_array($type->name, DirectiveEnum::getAll());
     }
 
     /**

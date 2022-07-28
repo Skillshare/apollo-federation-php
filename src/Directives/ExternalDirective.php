@@ -2,10 +2,9 @@
 
 namespace Apollo\Federation\Directives;
 
-use GraphQL\Type\Definition\Type;
-use GraphQL\Type\Definition\Directive;
-use GraphQL\Type\Definition\FieldArgument;
+use Apollo\Federation\Enum\DirectiveEnum;
 use GraphQL\Language\DirectiveLocation;
+use GraphQL\Type\Definition\Directive;
 
 /**
  * The `@external` directive is used to mark a field as owned by another service. This
@@ -17,7 +16,7 @@ class ExternalDirective extends Directive
     public function __construct()
     {
         parent::__construct([
-            'name' => 'external',
+            'name' => DirectiveEnum::EXTERNAL,
             'locations' => [DirectiveLocation::FIELD_DEFINITION]
         ]);
     }

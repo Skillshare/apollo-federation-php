@@ -2,6 +2,7 @@
 
 namespace Apollo\Federation\Directives;
 
+use Apollo\Federation\Enum\DirectiveEnum;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\Directive;
 use GraphQL\Type\Definition\FieldArgument;
@@ -16,7 +17,7 @@ class ProvidesDirective extends Directive
     public function __construct()
     {
         parent::__construct([
-            'name' => 'provides',
+            'name' => DirectiveEnum::PROVIDES,
             'locations' => [DirectiveLocation::FIELD_DEFINITION],
             'args' => [
                 new FieldArgument([
