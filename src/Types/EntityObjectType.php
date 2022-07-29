@@ -7,28 +7,27 @@ namespace Apollo\Federation\Types;
 use GraphQL\Utils\Utils;
 use GraphQL\Type\Definition\ObjectType;
 
-use array_key_exists;
-
 /**
  * An entity is a type that can be referenced by another service. Entities create
  * connection points between services and form the basic building blocks of a federated
  * graph. Entities have a primary key whose value uniquely identifies a specific instance
  * of the type, similar to the function of a primary key in a SQL table
- * (see [related docs](https://www.apollographql.com/docs/apollo-server/federation/core-concepts/#entities-and-keys)).
+ * {@see https://www.apollographql.com/docs/apollo-server/federation/core-concepts/#entities-and-keys }.
  *
  * The `keyFields` property is required in the configuration, indicating the fields that
  * serve as the unique keys or identifiers of the entity.
  *
  * Sample usage:
- *
+ * <code>
  *     $userType = new Apollo\Federation\Types\EntityObjectType([
  *       'name' => 'User',
  *       'keyFields' => ['id', 'email'],
  *       'fields' => [...]
  *     ]);
+ * </code>
  *
  * Entity types can also set attributes to its fields to hint the gateway on how to resolve them.
- *
+ * <code>
  *     $userType = new Apollo\Federation\Types\EntityObjectType([
  *       'name' => 'User',
  *       'keyFields' => ['id', 'email'],
@@ -39,10 +38,17 @@ use array_key_exists;
  *         ]
  *       ]
  *     ]);
- *
+ * </code>
  */
 class EntityObjectType extends ObjectType
 {
+    public const FIELD_KEY_FIELDS = 'keyFields';
+    public const FIELD_REFERENCE_RESOLVER = '__resolveReference';
+
+    public const FIELD_DIRECTIVE_IS_EXTERNAL = 'isExternal';
+    public const FIELD_DIRECTIVE_PROVIDES = 'provides';
+    public const FIELD_DIRECTIVE_REQUIRES = 'requires';
+
     /** @var array */
     private $keyFields;
 
@@ -54,11 +60,11 @@ class EntityObjectType extends ObjectType
      */
     public function __construct(array $config)
     {
-        $this->keyFields = $config['keyFields'];
+        $this->keyFields = $config[self::FIELD_KEY_FIELDS];
 
-        if (isset($config['__resolveReference'])) {
+        if (isset($config[self::FIELD_REFERENCE_RESOLVER])) {
             self::validateResolveReference($config);
-            $this->referenceResolver = $config['__resolveReference'];
+            $this->referenceResolver = $config[self::FIELD_REFERENCE_RESOLVER];
         }
 
         parent::__construct($config);
@@ -113,6 +119,6 @@ class EntityObjectType extends ObjectType
 
     public static function validateResolveReference(array $config)
     {
-        Utils::invariant(is_callable($config['__resolveReference']), 'Reference resolver has to be callable.');
+        Utils::invariant(is_callable($config[self::FIELD_REFERENCE_RESOLVER]), 'Reference resolver has to be callable.');
     }
 }

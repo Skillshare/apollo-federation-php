@@ -462,16 +462,18 @@ class FederatedSchemaPrinter
     {
         $directives = [];
 
-        if (isset($field->config['isExternal']) && $field->config['isExternal'] === true) {
-            array_push($directives, '@external');
+        if (isset($field->config[EntityObjectType::FIELD_DIRECTIVE_IS_EXTERNAL])
+            && $field->config[EntityObjectType::FIELD_DIRECTIVE_IS_EXTERNAL] === true
+        ) {
+            $directives[] = '@external';
         }
 
-        if (isset($field->config['provides'])) {
-            array_push($directives, sprintf('@provides(fields: "%s")', $field->config['provides']));
+        if (isset($field->config[EntityObjectType::FIELD_DIRECTIVE_PROVIDES])) {
+            $directives[] = sprintf('@provides(fields: "%s")', $field->config[EntityObjectType::FIELD_DIRECTIVE_PROVIDES]);
         }
 
-        if (isset($field->config['requires'])) {
-            array_push($directives, sprintf('@requires(fields: "%s")', $field->config['requires']));
+        if (isset($field->config[EntityObjectType::FIELD_DIRECTIVE_REQUIRES])) {
+            $directives[] = sprintf('@requires(fields: "%s")', $field->config[EntityObjectType::FIELD_DIRECTIVE_REQUIRES]);
         }
 
         return implode(' ', $directives);
