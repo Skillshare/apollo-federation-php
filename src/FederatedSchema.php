@@ -9,6 +9,7 @@ use Apollo\Federation\Types\EntityObjectType;
 use Apollo\Federation\Utils\FederatedSchemaPrinter;
 use GraphQL\Type\Definition\CustomScalarType;
 use GraphQL\Type\Definition\Directive;
+use GraphQL\Type\Definition\ListOfType;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\UnionType;
@@ -94,7 +95,9 @@ class FederatedSchema extends Schema
     }
 
     /**
-     * @return Directive[]
+     * @param array<string,mixed> $config
+     *
+     * @return array<string,mixed>
      */
     private function getEntityDirectivesConfig(array $config): array
     {
@@ -157,7 +160,7 @@ class FederatedSchema extends Schema
     /**
      * @param array<string,mixed>|null $config
      *
-     * @return array<string,mixed>
+     * @return array<string,array{ type: ListOfType, args: array<string,array<string,Type>>, resolve: callable }>
      */
     private function getQueryTypeEntitiesFieldConfig(?array $config): array
     {
