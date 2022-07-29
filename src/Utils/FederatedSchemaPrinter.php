@@ -33,6 +33,10 @@ declare(strict_types=1);
 namespace Apollo\Federation\Utils;
 
 use Apollo\Federation\Enum\DirectiveEnum;
+use Apollo\Federation\Enum\TypeEnum;
+use Apollo\Federation\Types\EntityObjectType;
+use Apollo\Federation\Types\EntityRefObjectType;
+
 use GraphQL\Error\Error;
 use GraphQL\Language\Printer;
 use GraphQL\Type\Definition\Directive;
@@ -52,9 +56,6 @@ use GraphQL\Type\Introspection;
 use GraphQL\Type\Schema;
 use GraphQL\Utils\AST;
 use GraphQL\Utils\Utils;
-
-use Apollo\Federation\Types\EntityObjectType;
-use Apollo\Federation\Types\EntityRefObjectType;
 
 use function array_filter;
 use function array_keys;
@@ -316,8 +317,7 @@ class FederatedSchemaPrinter
     public static function printType(Type $type, array $options = []): string
     {
         if ($type instanceof ScalarType) {
-            // TODO: use constant instead of magic scalar value
-            if ($type->name !== '_Any') {
+            if ($type->name !== TypeEnum::ANY) {
                 return self::printScalar($type, $options);
             }
 
@@ -329,8 +329,7 @@ class FederatedSchemaPrinter
         }
 
         if ($type instanceof ObjectType) {
-            // TODO: use constant instead of magic scalar value
-            if ($type->name !== '_Service') {
+            if (TypeEnum::SERVICE !== $type->name) {
                 return self::printObject($type, $options);
             }
 
@@ -342,8 +341,7 @@ class FederatedSchemaPrinter
         }
 
         if ($type instanceof UnionType) {
-            // TODO: use constant instead of magic scalar value
-            if ($type->name !== '_Entity') {
+            if (TypeEnum::ENTITY !== $type->name) {
                 return self::printUnion($type, $options);
             }
 

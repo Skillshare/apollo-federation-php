@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Apollo\Federation;
 
+use Apollo\Federation\Enum\TypeEnum;
 use GraphQL\Type\Schema;
 use GraphQL\Type\Definition\CustomScalarType;
 use GraphQL\Type\Definition\ObjectType;
@@ -124,7 +125,7 @@ class FederatedSchema extends Schema
     private function getQueryTypeServiceFieldConfig(): array
     {
         $serviceType = new ObjectType([
-            'name' => '_Service',
+            'name' => TypeEnum::SERVICE,
             'fields' => [
                 'sdl' => [
                     'type' => Type::string(),
@@ -153,12 +154,12 @@ class FederatedSchema extends Schema
         }
 
         $entityType = new UnionType([
-            'name' => '_Entity',
+            'name' => TypeEnum::ENTITY,
             'types' => array_values($this->getEntityTypes())
         ]);
 
         $anyType = new CustomScalarType([
-            'name' => '_Any',
+            'name' => TypeEnum::ANY,
             'serialize' => function ($value) {
                 return $value;
             }
