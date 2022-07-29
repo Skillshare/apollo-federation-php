@@ -37,11 +37,16 @@ use GraphQL\Error\Error;
 use GraphQL\Language\Printer;
 use GraphQL\Type\Definition\Directive;
 use GraphQL\Type\Definition\EnumType;
+use GraphQL\Type\Definition\EnumValueDefinition;
+use GraphQL\Type\Definition\FieldArgument;
+use GraphQL\Type\Definition\FieldDefinition;
+use GraphQL\Type\Definition\InputObjectField;
 use GraphQL\Type\Definition\InputObjectType;
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ScalarType;
 use GraphQL\Type\Definition\Type;
+use GraphQL\Type\Definition\TypeWithFields;
 use GraphQL\Type\Definition\UnionType;
 use GraphQL\Type\Introspection;
 use GraphQL\Type\Schema;
@@ -86,27 +91,27 @@ class FederatedSchemaPrinter
     {
         return self::printFilteredSchema(
             $schema,
-            static function ($type) {
+            static function (Directive $type): bool {
                 return !Directive::isSpecifiedDirective($type) && !self::isFederatedDirective($type);
             },
-            static function ($type) {
+            static function (Type $type): bool {
                 return !Type::isBuiltInType($type);
             },
             $options
         );
     }
 
-    public static function isFederatedDirective($type): bool
+    public static function isFederatedDirective(Directive $type): bool
     {
-        return \in_array($type->name, DirectiveEnum::getAll());
+        return \in_array($type->name, DirectiveEnum::getAll(), true);
     }
 
     /**
      * @param bool[] $options
      */
-    private static function printFilteredSchema(Schema $schema, $directiveFilter, $typeFilter, $options): string
+    private static function printFilteredSchema(Schema $schema, callable $directiveFilter, callable $typeFilter, array $options): string
     {
-        $directives = array_filter($schema->getDirectives(), static function ($directive) use ($directiveFilter) {
+        $directives = array_filter($schema->getDirectives(), static function (Directive $directive) use ($directiveFilter): bool {
             return $directiveFilter($directive);
         });
 
@@ -120,10 +125,10 @@ class FederatedSchemaPrinter
                 "\n\n",
                 array_filter(
                     array_merge(
-                        array_map(static function ($directive) use ($options) {
+                        array_map(static function (Directive $directive) use ($options) {
                             return self::printDirective($directive, $options);
                         }, $directives),
-                        array_map(static function ($type) use ($options) {
+                        array_map(static function (Type $type) use ($options) {
                             return self::printType($type, $options);
                         }, $types)
                     )
@@ -132,7 +137,10 @@ class FederatedSchemaPrinter
         );
     }
 
-    private static function printDirective($directive, $options): string
+    /**
+     * @param bool[] $options
+     */
+    private static function printDirective(Directive $directive, array $options): string
     {
         return self::printDescription($options, $directive) .
             'directive @' .
@@ -142,7 +150,11 @@ class FederatedSchemaPrinter
             implode(' | ', $directive->locations);
     }
 
-    private static function printDescription($options, $def, $indentation = '', $firstInBlock = true): string
+    /**
+     * @param bool[] $options
+     * @param Directive|EnumValueDefinition|FieldArgument|Type|object $def
+     */
+    private static function printDescription(array $options, $def, string $indentation = '', bool $firstInBlock = true): string
     {
         if (!$def->description) {
             return '';
@@ -162,13 +174,13 @@ class FederatedSchemaPrinter
         }
 
         // Format a multi-line block quote to account for leading space.
-        $hasLeadingSpace = isset($lines[0]) && (substr($lines[0], 0, 1) === ' ' || substr($lines[0], 0, 1) === '\t');
+        $hasLeadingSpace = isset($lines[0]) && \in_array(substr($lines[0], 0, 1), [' ', '\t'], true);
 
         if (!$hasLeadingSpace) {
             $description .= "\n";
         }
 
-        $lineLength = count($lines);
+        $lineLength = \count($lines);
 
         for ($i = 0; $i < $lineLength; $i++) {
             if ($i !== 0 || !$hasLeadingSpace) {
@@ -223,7 +235,10 @@ class FederatedSchemaPrinter
         return array_map('trim', $parts);
     }
 
-    private static function printDescriptionWithComments($lines, $indentation, $firstInBlock): string
+    /**
+     * @param string[] $lines
+     */
+    private static function printDescriptionWithComments(array $lines, string $indentation, bool $firstInBlock): string
     {
         $description = $indentation && !$firstInBlock ? "\n" : '';
 
@@ -238,12 +253,16 @@ class FederatedSchemaPrinter
         return $description;
     }
 
-    private static function escapeQuote($line): string
+    private static function escapeQuote(string $line): string
     {
         return str_replace('"""', '\\"""', $line);
     }
 
-    private static function printArgs($options, $args, $indentation = ''): string
+    /**
+     * @param bool[]               $options
+     * @param FieldArgument[]|null $args
+     */
+    private static function printArgs(array $options, $args, string $indentation = ''): string
     {
         if (!$args) {
             return '';
@@ -263,7 +282,7 @@ class FederatedSchemaPrinter
             implode(
                 "\n",
                 array_map(
-                    static function ($arg, $i) use ($indentation, $options) {
+                    static function (FieldArgument $arg, $i) use ($indentation, $options): string {
                         return self::printDescription($options, $arg, '  ' . $indentation, !$i) .
                             '  ' .
                             $indentation .
@@ -277,6 +296,9 @@ class FederatedSchemaPrinter
         );
     }
 
+    /**
+     * @param InputObjectField|FieldArgument $arg
+     */
     private static function printInputValue($arg): string
     {
         $argDecl = $arg->name . ': ' . (string) $arg->getType();
@@ -294,11 +316,12 @@ class FederatedSchemaPrinter
     public static function printType(Type $type, array $options = []): string
     {
         if ($type instanceof ScalarType) {
+            // TODO: use constant instead of magic scalar value
             if ($type->name !== '_Any') {
                 return self::printScalar($type, $options);
-            } else {
-                return '';
             }
+
+            return '';
         }
 
         if ($type instanceof EntityObjectType || $type instanceof EntityRefObjectType) {
@@ -306,11 +329,12 @@ class FederatedSchemaPrinter
         }
 
         if ($type instanceof ObjectType) {
+            // TODO: use constant instead of magic scalar value
             if ($type->name !== '_Service') {
                 return self::printObject($type, $options);
-            } else {
-                return '';
             }
+
+            return '';
         }
 
         if ($type instanceof InterfaceType) {
@@ -318,11 +342,12 @@ class FederatedSchemaPrinter
         }
 
         if ($type instanceof UnionType) {
+            // TODO: use constant instead of magic scalar value
             if ($type->name !== '_Entity') {
                 return self::printUnion($type, $options);
-            } else {
-                return '';
             }
+
+            return '';
         }
 
         if ($type instanceof EnumType) {
@@ -364,6 +389,7 @@ class FederatedSchemaPrinter
                 )
             : '';
 
+        // FIXME: hardcoded names! They can be different in real.
         $queryExtends = $type->name === 'Query' || $type->name === 'Mutation' ? 'extend ' : '';
 
         return self::printDescription($options, $type) .
@@ -414,13 +440,16 @@ class FederatedSchemaPrinter
 
     /**
      * @param bool[] $options
+     * @param EntityObjectType|InterfaceType|ObjectType $type
      */
-    private static function printFields($options, $type): string
+    private static function printFields(array $options, TypeWithFields $type): string
     {
         $fields = array_values($type->getFields());
 
+        // FIXME it looks like hardcoded name. Potentially, it can be different!
         if ($type->name === 'Query') {
-            $fields = array_filter($fields, function ($field) {
+            $fields = array_filter($fields, static function (FieldDefinition $field): bool {
+                //TODO use constants instead of magic scalar values
                 return $field->name !== '_service' && $field->name !== '_entities';
             });
         }
@@ -428,7 +457,7 @@ class FederatedSchemaPrinter
         return implode(
             "\n",
             array_map(
-                static function ($f, $i) use ($options) {
+                static function (FieldDefinition $f, $i) use ($options) {
                     return self::printDescription($options, $f, '  ', !$i) .
                         '  ' .
                         $f->name .
@@ -445,6 +474,9 @@ class FederatedSchemaPrinter
         );
     }
 
+    /**
+     * @param EnumValueDefinition|FieldDefinition $fieldOrEnumVal
+     */
     private static function printDeprecated($fieldOrEnumVal): string
     {
         $reason = $fieldOrEnumVal->deprecationReason;
@@ -458,7 +490,7 @@ class FederatedSchemaPrinter
         return ' @deprecated(reason: ' . Printer::doPrint(AST::astFromValue($reason, Type::string())) . ')';
     }
 
-    private static function printFieldFederatedDirectives($field)
+    private static function printFieldFederatedDirectives(FieldDefinition $field): string
     {
         $directives = [];
 
@@ -507,9 +539,10 @@ class FederatedSchemaPrinter
     }
 
     /**
+     * @param EnumValueDefinition[] $values
      * @param bool[] $options
      */
-    private static function printEnumValues($values, $options): string
+    private static function printEnumValues(array $values, array $options): string
     {
         return implode(
             "\n",
