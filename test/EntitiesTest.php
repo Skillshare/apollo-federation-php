@@ -4,14 +4,11 @@ declare(strict_types=1);
 
 namespace Apollo\Federation\Tests;
 
-use PHPUnit\Framework\TestCase;
-use Spatie\Snapshots\MatchesSnapshots;
-
-use GraphQL\Type\Definition\Type;
-use GraphQL\Error\InvariantViolation;
-
 use Apollo\Federation\Types\EntityObjectType;
 use Apollo\Federation\Types\EntityRefObjectType;
+use GraphQL\Type\Definition\Type;
+use PHPUnit\Framework\TestCase;
+use Spatie\Snapshots\MatchesSnapshots;
 
 class EntitiesTest extends TestCase
 {

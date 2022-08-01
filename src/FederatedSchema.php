@@ -17,7 +17,7 @@ use GraphQL\Utils\TypeInfo;
 use GraphQL\Utils\Utils;
 
 /**
- * A federated GraphQL schema definition {@see https://www.apollographql.com/docs/apollo-server/federation/introduction }.
+ * A federated GraphQL schema definition see related docs {@see https://www.apollographql.com/docs/apollo-server/federation/introduction }.
  *
  * A federated schema defines a self-contained GraphQL service that can be merged with
  * other services by the [Apollo Gateway](https://www.apollographql.com/docs/intro/platform/#gateway)

@@ -18,6 +18,7 @@ An entity is an object type that you define canonically in one subgraph and can 
 
 ```php
 use Apollo\Federation\Types\EntityObjectType;
+use GraphQL\Type\Definition\Type;
 
 $userType = new EntityObjectType([
     'name' => 'User',
@@ -34,7 +35,7 @@ $userType = new EntityObjectType([
 ]);
 ```
 
-* `keyFields` — defines the entity's primary key, which consists of one or more of the type's. An entity's key cannot include fields that return a union or interface.
+* `keyFields` — defines the entity's primary key, which consists of one or more of the fields. An entity's key cannot include fields that return a union or interface.
 
 * `__resolveReference` — resolves the representation of the entity from the provided reference. Subgraphs use representations to reference entities from other subgraphs. A representation requires only an explicit __typename definition and values for the entity's primary key fields.
 

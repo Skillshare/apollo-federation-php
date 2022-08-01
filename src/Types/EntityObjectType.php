@@ -13,7 +13,7 @@ use GraphQL\Utils\Utils;
  * connection points between services and form the basic building blocks of a federated
  * graph. Entities have a primary key whose value uniquely identifies a specific instance
  * of the type, similar to the function of a primary key in a SQL table
- * {@see https://www.apollographql.com/docs/apollo-server/federation/core-concepts/#entities-and-keys }.
+ * see related docs {@see https://www.apollographql.com/docs/apollo-server/federation/core-concepts/#entities-and-keys }.
  *
  * The `keyFields` property is required in the configuration, indicating the fields that
  * serve as the unique keys or identifiers of the entity.

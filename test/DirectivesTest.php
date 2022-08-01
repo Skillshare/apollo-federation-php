@@ -4,16 +4,14 @@ declare(strict_types=1);
 
 namespace Apollo\Federation\Tests;
 
+use Apollo\Federation\Directives;
+use GraphQL\Language\DirectiveLocation;
+use GraphQL\Type\Definition\ObjectType;
+use GraphQL\Type\Definition\Type;
+use GraphQL\Type\Schema;
+use GraphQL\Utils\SchemaPrinter;
 use PHPUnit\Framework\TestCase;
 use Spatie\Snapshots\MatchesSnapshots;
-
-use GraphQL\Type\Schema;
-use GraphQL\Type\Definition\Type;
-use GraphQL\Type\Definition\ObjectType;
-use GraphQL\Language\DirectiveLocation;
-use GraphQL\Utils\SchemaPrinter;
-
-use Apollo\Federation\Directives;
 
 class DirectivesTest extends TestCase
 {

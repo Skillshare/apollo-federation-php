@@ -4,15 +4,10 @@ declare(strict_types=1);
 
 namespace Apollo\Federation\Tests;
 
+use GraphQL\GraphQL;
+use GraphQL\Utils\SchemaPrinter;
 use PHPUnit\Framework\TestCase;
 use Spatie\Snapshots\MatchesSnapshots;
-
-use GraphQL\GraphQL;
-use GraphQL\Type\Definition\Type;
-use GraphQL\Utils\SchemaPrinter;
-
-use Apollo\Federation\Tests\StarWarsSchema;
-use Apollo\Federation\Tests\DungeonsAndDragonsSchema;
 
 class SchemaTest extends TestCase
 {
