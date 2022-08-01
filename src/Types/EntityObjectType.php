@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Apollo\Federation\Types;
 
+use Apollo\Federation\FederatedSchema;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Utils\Utils;
 
@@ -120,7 +121,7 @@ class EntityObjectType extends ObjectType
      */
     private function validateReferenceKeys($ref)
     {
-        Utils::invariant(isset($ref['__typename']), 'Type name must be provided in the reference.');
+        Utils::invariant(isset($ref[FederatedSchema::RESERVED_FIELD_TYPE_NAME]), 'Type name must be provided in the reference.');
     }
 
     /**

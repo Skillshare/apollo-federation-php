@@ -37,7 +37,7 @@ class StarWarsSchema
                         $type = $info->schema->getType($typeName);
                         $ref["id"] = $ref["id"] + 1;
                         return $type->resolveReference($ref);
-                    }, $args['representations']);
+                    }, $args[FederatedSchema::RESERVED_FIELD_REPRESENTATIONS]);
                 }
             ]);
         }
@@ -49,7 +49,7 @@ class StarWarsSchema
         $episodeType = self::getEpisodeType();
 
         $queryType = new ObjectType([
-            'name' => 'Query',
+            'name' => FederatedSchema::RESERVED_TYPE_QUERY,
             'fields' => [
                 'episodes' => [
                     'type' => Type::nonNull(Type::listOf(Type::nonNull($episodeType))),
@@ -86,8 +86,8 @@ class StarWarsSchema
                     'provides' => 'name'
                 ]
             ],
-            'keyFields' => ['id'],
-            '__resolveReference' => function ($ref) {
+            EntityObjectType::FIELD_KEY_FIELDS => ['id'],
+            EntityObjectType::FIELD_REFERENCE_RESOLVER => function ($ref) {
                 // print_r($ref);
                 $entity = StarWarsData::getEpisodeById($ref['id']);
                 $entity["__typename"] = "Episode";
@@ -118,7 +118,7 @@ class StarWarsSchema
                     'requires' => 'name'
                 ]
             ],
-            'keyFields' => ['id']
+            EntityObjectType::FIELD_KEY_FIELDS => ['id']
         ]);
     }
 
@@ -137,7 +137,7 @@ class StarWarsSchema
                     'isExternal' => true
                 ]
             ],
-            'keyFields' => ['id']
+            EntityObjectType::FIELD_KEY_FIELDS => ['id']
         ]);
     }
 }

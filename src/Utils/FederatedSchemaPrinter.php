@@ -33,7 +33,7 @@ declare(strict_types=1);
 namespace Apollo\Federation\Utils;
 
 use Apollo\Federation\Enum\DirectiveEnum;
-use Apollo\Federation\Enum\TypeEnum;
+use Apollo\Federation\FederatedSchema;
 use Apollo\Federation\Types\EntityObjectType;
 use Apollo\Federation\Types\EntityRefObjectType;
 
@@ -317,7 +317,7 @@ class FederatedSchemaPrinter
     public static function printType(Type $type, array $options = []): string
     {
         if ($type instanceof ScalarType) {
-            if ($type->name !== TypeEnum::ANY) {
+            if ($type->name !== FederatedSchema::RESERVED_TYPE_ANY) {
                 return self::printScalar($type, $options);
             }
 
@@ -329,7 +329,7 @@ class FederatedSchemaPrinter
         }
 
         if ($type instanceof ObjectType) {
-            if (TypeEnum::SERVICE !== $type->name) {
+            if (FederatedSchema::RESERVED_TYPE_SERVICE !== $type->name) {
                 return self::printObject($type, $options);
             }
 
@@ -341,7 +341,7 @@ class FederatedSchemaPrinter
         }
 
         if ($type instanceof UnionType) {
-            if (TypeEnum::ENTITY !== $type->name) {
+            if (FederatedSchema::RESERVED_TYPE_ENTITY !== $type->name) {
                 return self::printUnion($type, $options);
             }
 
@@ -387,8 +387,9 @@ class FederatedSchemaPrinter
                 )
             : '';
 
-        // FIXME: hardcoded names! They can be different in real.
-        $queryExtends = $type->name === 'Query' || $type->name === 'Mutation' ? 'extend ' : '';
+        $queryExtends = \in_array($type->name, [FederatedSchema::RESERVED_TYPE_QUERY, FederatedSchema::RESERVED_TYPE_MUTATION], true)
+            ? 'extend '
+            : '';
 
         return self::printDescription($options, $type) .
             sprintf(
@@ -444,11 +445,10 @@ class FederatedSchemaPrinter
     {
         $fields = array_values($type->getFields());
 
-        // FIXME it looks like hardcoded name. Potentially, it can be different!
-        if ($type->name === 'Query') {
+        if ($type->name === FederatedSchema::RESERVED_TYPE_QUERY) {
             $fields = array_filter($fields, static function (FieldDefinition $field): bool {
-                //TODO use constants instead of magic scalar values
-                return $field->name !== '_service' && $field->name !== '_entities';
+                return $field->name !== FederatedSchema::RESERVED_FIELD_SERVICE
+                    && $field->name !== FederatedSchema::RESERVED_FIELD_ENTITIES;
             });
         }
 

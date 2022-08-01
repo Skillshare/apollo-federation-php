@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Apollo\Federation;
 
-use Apollo\Federation\Enum\TypeEnum;
 use Apollo\Federation\Types\EntityObjectType;
 use Apollo\Federation\Utils\FederatedSchemaPrinter;
 use GraphQL\Type\Definition\CustomScalarType;
@@ -57,6 +56,18 @@ use GraphQL\Utils\Utils;
  */
 class FederatedSchema extends Schema
 {
+    public const RESERVED_TYPE_ANY = '_Any';
+    public const RESERVED_TYPE_ENTITY = '_Entity';
+    public const RESERVED_TYPE_SERVICE = '_Service';
+    public const RESERVED_TYPE_MUTATION = 'Mutation';
+    public const RESERVED_TYPE_QUERY = 'Query';
+
+    public const RESERVED_FIELD_ENTITIES = '_entities';
+    public const RESERVED_FIELD_REPRESENTATIONS = 'representations';
+    public const RESERVED_FIELD_SDL = 'sdl';
+    public const RESERVED_FIELD_SERVICE = '_service';
+    public const RESERVED_FIELD_TYPE_NAME = '__typename';
+
     /** @var EntityObjectType[] */
     protected $entityTypes;
 
@@ -136,9 +147,9 @@ class FederatedSchema extends Schema
     private function getQueryTypeServiceFieldConfig(): array
     {
         $serviceType = new ObjectType([
-            'name' => TypeEnum::SERVICE,
+            'name' => self::RESERVED_TYPE_SERVICE,
             'fields' => [
-                'sdl' => [
+                self::RESERVED_FIELD_SDL => [
                     'type' => Type::string(),
                     'resolve' => function () {
                         return FederatedSchemaPrinter::doPrint($this);
@@ -148,7 +159,7 @@ class FederatedSchema extends Schema
         ]);
 
         return [
-            '_service' => [
+            self::RESERVED_FIELD_SERVICE => [
                 'type' => Type::nonNull($serviceType),
                 'resolve' => function () {
                     return [];
@@ -169,22 +180,22 @@ class FederatedSchema extends Schema
         }
 
         $entityType = new UnionType([
-            'name' => TypeEnum::ENTITY,
+            'name' => self::RESERVED_TYPE_ENTITY,
             'types' => array_values($this->getEntityTypes()),
         ]);
 
         $anyType = new CustomScalarType([
-            'name' => TypeEnum::ANY,
+            'name' => self::RESERVED_TYPE_ANY,
             'serialize' => function ($value) {
                 return $value;
             },
         ]);
 
         return [
-            '_entities' => [
+            self::RESERVED_FIELD_ENTITIES => [
                 'type' => Type::listOf($entityType),
                 'args' => [
-                    'representations' => [
+                    self::RESERVED_FIELD_REPRESENTATIONS => [
                         'type' => Type::nonNull(Type::listOf(Type::nonNull($anyType))),
                     ],
                 ],
@@ -202,9 +213,9 @@ class FederatedSchema extends Schema
     private function resolve($root, $args, $context, $info): array
     {
         return array_map(static function ($ref) use ($context, $info) {
-            Utils::invariant(isset($ref['__typename']), 'Type name must be provided in the reference.');
+            Utils::invariant(isset($ref[self::RESERVED_FIELD_TYPE_NAME]), 'Type name must be provided in the reference.');
 
-            $typeName = $ref['__typename'];
+            $typeName = $ref[self::RESERVED_FIELD_TYPE_NAME];
             $type = $info->schema->getType($typeName);
 
             Utils::invariant(
@@ -220,7 +231,7 @@ class FederatedSchema extends Schema
             }
 
             return $type->resolveReference($ref, $context, $info);
-        }, $args['representations']);
+        }, $args[self::RESERVED_FIELD_REPRESENTATIONS]);
     }
 
     /**
