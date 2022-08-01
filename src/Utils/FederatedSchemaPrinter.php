@@ -85,10 +85,10 @@ class FederatedSchemaPrinter
      */
     public static function doPrint(Schema $schema, array $options = []): string
     {
-        return self::printFilteredSchema(
+        return static::printFilteredSchema(
             $schema,
             static function (Directive $type): bool {
-                return !Directive::isSpecifiedDirective($type) && !self::isFederatedDirective($type);
+                return !Directive::isSpecifiedDirective($type) && !static::isFederatedDirective($type);
             },
             static function (Type $type): bool {
                 return !Type::isBuiltInType($type);
@@ -105,7 +105,7 @@ class FederatedSchemaPrinter
     /**
      * @param array<string, bool> $options
      */
-    private static function printFilteredSchema(Schema $schema, callable $directiveFilter, callable $typeFilter, array $options): string
+    protected static function printFilteredSchema(Schema $schema, callable $directiveFilter, callable $typeFilter, array $options): string
     {
         $directives = array_filter($schema->getDirectives(), static function (Directive $directive) use ($directiveFilter): bool {
             return $directiveFilter($directive);
@@ -122,10 +122,10 @@ class FederatedSchemaPrinter
                 array_filter(
                     array_merge(
                         array_map(static function (Directive $directive) use ($options) {
-                            return self::printDirective($directive, $options);
+                            return static::printDirective($directive, $options);
                         }, $directives),
                         array_map(static function (Type $type) use ($options) {
-                            return self::printType($type, $options);
+                            return static::printType($type, $options);
                         }, $types)
                     )
                 )
@@ -136,12 +136,12 @@ class FederatedSchemaPrinter
     /**
      * @param array<string, bool> $options
      */
-    private static function printDirective(Directive $directive, array $options): string
+    protected static function printDirective(Directive $directive, array $options): string
     {
-        return self::printDescription($options, $directive) .
+        return static::printDescription($options, $directive) .
             'directive @' .
             $directive->name .
-            self::printArgs($options, $directive->args) .
+            static::printArgs($options, $directive->args) .
             ' on ' .
             implode(' | ', $directive->locations);
     }
@@ -150,23 +150,23 @@ class FederatedSchemaPrinter
      * @param array<string, bool> $options
      * @param Directive|EnumValueDefinition|FieldArgument|Type|object $def
      */
-    private static function printDescription(array $options, $def, string $indentation = '', bool $firstInBlock = true): string
+    protected static function printDescription(array $options, $def, string $indentation = '', bool $firstInBlock = true): string
     {
         if (!isset($def->description) || !$def->description) {
             return '';
         }
 
-        $lines = self::descriptionLines($def->description, 120 - \strlen($indentation));
+        $lines = static::descriptionLines($def->description, 120 - \strlen($indentation));
 
         if (isset($options['commentDescriptions'])) {
-            return self::printDescriptionWithComments($lines, $indentation, $firstInBlock);
+            return static::printDescriptionWithComments($lines, $indentation, $firstInBlock);
         }
 
         $description = $indentation && !$firstInBlock ? "\n" . $indentation . '"""' : $indentation . '"""';
 
         // In some circumstances, a single line can be used for the description.
         if (1 === \count($lines) && mb_strlen($lines[0]) < 70 && '"' !== substr($lines[0], -1)) {
-            return $description . self::escapeQuote($lines[0]) . "\"\"\"\n";
+            return $description . static::escapeQuote($lines[0]) . "\"\"\"\n";
         }
 
         // Format a multi-line block quote to account for leading space.
@@ -182,7 +182,7 @@ class FederatedSchemaPrinter
             if (0 !== $i || !$hasLeadingSpace) {
                 $description .= $indentation;
             }
-            $description .= self::escapeQuote($lines[$i]) . "\n";
+            $description .= static::escapeQuote($lines[$i]) . "\n";
         }
 
         $description .= $indentation . "\"\"\"\n";
@@ -193,7 +193,7 @@ class FederatedSchemaPrinter
     /**
      * @return string[]
      */
-    private static function descriptionLines(string $description, int $maxLen): array
+    protected static function descriptionLines(string $description, int $maxLen): array
     {
         $lines = [];
         $rawLines = explode("\n", $description);
@@ -204,7 +204,7 @@ class FederatedSchemaPrinter
             } else {
                 // For > 120 character long lines, cut at space boundaries into sublines
                 // of ~80 chars.
-                $sublines = self::breakLine($line, $maxLen);
+                $sublines = static::breakLine($line, $maxLen);
 
                 foreach ($sublines as $subline) {
                     $lines[] = $subline;
@@ -218,7 +218,7 @@ class FederatedSchemaPrinter
     /**
      * @return string[]
      */
-    private static function breakLine(string $line, int $maxLen): array
+    protected static function breakLine(string $line, int $maxLen): array
     {
         if (\strlen($line) < $maxLen + 5) {
             return [$line];
@@ -234,7 +234,7 @@ class FederatedSchemaPrinter
     /**
      * @param string[] $lines
      */
-    private static function printDescriptionWithComments(array $lines, string $indentation, bool $firstInBlock): string
+    protected static function printDescriptionWithComments(array $lines, string $indentation, bool $firstInBlock): string
     {
         $description = $indentation && !$firstInBlock ? "\n" : '';
 
@@ -249,7 +249,7 @@ class FederatedSchemaPrinter
         return $description;
     }
 
-    private static function escapeQuote(string $line): string
+    protected static function escapeQuote(string $line): string
     {
         return str_replace('"""', '\\"""', $line);
     }
@@ -258,7 +258,7 @@ class FederatedSchemaPrinter
      * @param bool[]               $options
      * @param FieldArgument[]|null $args
      */
-    private static function printArgs(array $options, $args, string $indentation = ''): string
+    protected static function printArgs(array $options, $args, string $indentation = ''): string
     {
         if (!$args) {
             return '';
@@ -270,7 +270,7 @@ class FederatedSchemaPrinter
                 return empty($arg->description);
             })
         ) {
-            return '(' . implode(', ', array_map('self::printInputValue', $args)) . ')';
+            return '(' . implode(', ', array_map('static::printInputValue', $args)) . ')';
         }
 
         return sprintf(
@@ -279,10 +279,10 @@ class FederatedSchemaPrinter
                 "\n",
                 array_map(
                     static function (FieldArgument $arg, $i) use ($indentation, $options): string {
-                        return self::printDescription($options, $arg, '  ' . $indentation, !$i) .
+                        return static::printDescription($options, $arg, '  ' . $indentation, !$i) .
                             '  ' .
                             $indentation .
-                            self::printInputValue($arg);
+                            static::printInputValue($arg);
                     },
                     $args,
                     array_keys($args)
@@ -295,7 +295,7 @@ class FederatedSchemaPrinter
     /**
      * @param InputObjectField|FieldArgument $arg
      */
-    private static function printInputValue($arg): string
+    protected static function printInputValue($arg): string
     {
         $argDecl = $arg->name . ': ' . (string) $arg->getType();
 
@@ -313,42 +313,42 @@ class FederatedSchemaPrinter
     {
         if ($type instanceof ScalarType) {
             if (FederatedSchema::RESERVED_TYPE_ANY !== $type->name) {
-                return self::printScalar($type, $options);
+                return static::printScalar($type, $options);
             }
 
             return '';
         }
 
         if ($type instanceof EntityObjectType || $type instanceof EntityRefObjectType) {
-            return self::printEntityObject($type, $options);
+            return static::printEntityObject($type, $options);
         }
 
         if ($type instanceof ObjectType) {
             if (FederatedSchema::RESERVED_TYPE_SERVICE !== $type->name) {
-                return self::printObject($type, $options);
+                return static::printObject($type, $options);
             }
 
             return '';
         }
 
         if ($type instanceof InterfaceType) {
-            return self::printInterface($type, $options);
+            return static::printInterface($type, $options);
         }
 
         if ($type instanceof UnionType) {
             if (FederatedSchema::RESERVED_TYPE_ENTITY !== $type->name) {
-                return self::printUnion($type, $options);
+                return static::printUnion($type, $options);
             }
 
             return '';
         }
 
         if ($type instanceof EnumType) {
-            return self::printEnum($type, $options);
+            return static::printEnum($type, $options);
         }
 
         if ($type instanceof InputObjectType) {
-            return self::printInputObject($type, $options);
+            return static::printInputObject($type, $options);
         }
 
         throw new Error(sprintf('Unknown type: %s.', Utils::printSafe($type)));
@@ -357,15 +357,15 @@ class FederatedSchemaPrinter
     /**
      * @param array<string, bool> $options
      */
-    private static function printScalar(ScalarType $type, array $options): string
+    protected static function printScalar(ScalarType $type, array $options): string
     {
-        return sprintf('%sscalar %s', self::printDescription($options, $type), $type->name);
+        return sprintf('%sscalar %s', static::printDescription($options, $type), $type->name);
     }
 
     /**
      * @param array<string, bool> $options
      */
-    private static function printObject(ObjectType $type, array $options): string
+    protected static function printObject(ObjectType $type, array $options): string
     {
         if (empty($type->getFields())) {
             return '';
@@ -386,20 +386,20 @@ class FederatedSchemaPrinter
             ? 'extend '
             : '';
 
-        return self::printDescription($options, $type) .
+        return static::printDescription($options, $type) .
             sprintf(
                 "%stype %s%s {\n%s\n}",
                 $queryExtends,
                 $type->name,
                 $implementedInterfaces,
-                self::printFields($options, $type)
+                static::printFields($options, $type)
             );
     }
 
     /**
      * @param array<string, bool> $options
      */
-    private static function printEntityObject(EntityObjectType $type, array $options): string
+    protected static function printEntityObject(EntityObjectType $type, array $options): string
     {
         $interfaces = $type->getInterfaces();
         $implementedInterfaces = !empty($interfaces)
@@ -415,20 +415,20 @@ class FederatedSchemaPrinter
         $keyDirective = '';
 
         foreach ($type->getKeyFields() as $keyField) {
-            $keyDirective = $keyDirective . sprintf(' @key(fields: "%s")', self::printKeyFields($keyField));
+            $keyDirective = $keyDirective . sprintf(' @key(fields: "%s")', static::printKeyFields($keyField));
         }
 
         $isEntityRef = $type instanceof EntityRefObjectType;
         $extends = $isEntityRef ? 'extend ' : '';
 
-        return self::printDescription($options, $type) .
+        return static::printDescription($options, $type) .
             sprintf(
                 "%stype %s%s%s {\n%s\n}",
                 $extends,
                 $type->name,
                 $implementedInterfaces,
                 $keyDirective,
-                self::printFields($options, $type)
+                static::printFields($options, $type)
             );
     }
 
@@ -436,7 +436,7 @@ class FederatedSchemaPrinter
      * @param array<string, bool> $options
      * @param EntityObjectType|InterfaceType|ObjectType $type
      */
-    private static function printFields(array $options, TypeWithFields $type): string
+    protected static function printFields(array $options, TypeWithFields $type): string
     {
         $fields = array_values($type->getFields());
 
@@ -451,15 +451,15 @@ class FederatedSchemaPrinter
             "\n",
             array_map(
                 static function (FieldDefinition $f, $i) use ($options) {
-                    return self::printDescription($options, $f, '  ', !$i) .
+                    return static::printDescription($options, $f, '  ', !$i) .
                         '  ' .
                         $f->name .
-                        self::printArgs($options, $f->args, '  ') .
+                        static::printArgs($options, $f->args, '  ') .
                         ': ' .
                         (string) $f->getType() .
-                        self::printDeprecated($f) .
+                        static::printDeprecated($f) .
                         ' ' .
-                        self::printFieldFederatedDirectives($f);
+                        static::printFieldFederatedDirectives($f);
                 },
                 $fields,
                 array_keys($fields)
@@ -470,7 +470,7 @@ class FederatedSchemaPrinter
     /**
      * @param EnumValueDefinition|FieldDefinition $fieldOrEnumVal
      */
-    private static function printDeprecated($fieldOrEnumVal): string
+    protected static function printDeprecated($fieldOrEnumVal): string
     {
         $reason = $fieldOrEnumVal->deprecationReason;
         if (empty($reason)) {
@@ -483,7 +483,7 @@ class FederatedSchemaPrinter
         return ' @deprecated(reason: ' . Printer::doPrint(AST::astFromValue($reason, Type::string())) . ')';
     }
 
-    private static function printFieldFederatedDirectives(FieldDefinition $field): string
+    protected static function printFieldFederatedDirectives(FieldDefinition $field): string
     {
         $directives = [];
 
@@ -494,11 +494,11 @@ class FederatedSchemaPrinter
         }
 
         if (isset($field->config[EntityObjectType::FIELD_DIRECTIVE_PROVIDES])) {
-            $directives[] = sprintf('@provides(fields: "%s")', self::printKeyFields($field->config[EntityObjectType::FIELD_DIRECTIVE_PROVIDES]));
+            $directives[] = sprintf('@provides(fields: "%s")', static::printKeyFields($field->config[EntityObjectType::FIELD_DIRECTIVE_PROVIDES]));
         }
 
         if (isset($field->config[EntityObjectType::FIELD_DIRECTIVE_REQUIRES])) {
-            $directives[] = sprintf('@requires(fields: "%s")', self::printKeyFields($field->config[EntityObjectType::FIELD_DIRECTIVE_REQUIRES]));
+            $directives[] = sprintf('@requires(fields: "%s")', static::printKeyFields($field->config[EntityObjectType::FIELD_DIRECTIVE_REQUIRES]));
         }
 
         return implode(' ', $directives);
@@ -507,10 +507,10 @@ class FederatedSchemaPrinter
     /**
      * @param array<string, bool> $options
      */
-    private static function printInterface(InterfaceType $type, array $options): string
+    protected static function printInterface(InterfaceType $type, array $options): string
     {
-        return self::printDescription($options, $type) .
-            sprintf("interface %s {\n%s\n}", $type->name, self::printFields($options, $type));
+        return static::printDescription($options, $type) .
+            sprintf("interface %s {\n%s\n}", $type->name, static::printFields($options, $type));
     }
 
     /**
@@ -519,14 +519,14 @@ class FederatedSchemaPrinter
      *
      * @param string|array<string|int, mixed> $keyFields
      */
-    private static function printKeyFields($keyFields): string
+    protected static function printKeyFields($keyFields): string
     {
         $parts = [];
         foreach (((array) $keyFields) as $index => $keyField) {
             if (\is_string($keyField)) {
                 $parts[] = $keyField;
             } elseif (\is_array($keyField)) {
-                $parts[] = sprintf('%s { %s }', $index, self::printKeyFields($keyField));
+                $parts[] = sprintf('%s { %s }', $index, static::printKeyFields($keyField));
             } else {
                 throw new \InvalidArgumentException('Invalid keyField config');
             }
@@ -538,35 +538,35 @@ class FederatedSchemaPrinter
     /**
      * @param array<string, bool> $options
      */
-    private static function printUnion(UnionType $type, array $options): string
+    protected static function printUnion(UnionType $type, array $options): string
     {
-        return self::printDescription($options, $type) .
+        return static::printDescription($options, $type) .
             sprintf('union %s = %s', $type->name, implode(' | ', $type->getTypes()));
     }
 
     /**
      * @param array<string, bool> $options
      */
-    private static function printEnum(EnumType $type, array $options): string
+    protected static function printEnum(EnumType $type, array $options): string
     {
-        return self::printDescription($options, $type) .
-            sprintf("enum %s {\n%s\n}", $type->name, self::printEnumValues($type->getValues(), $options));
+        return static::printDescription($options, $type) .
+            sprintf("enum %s {\n%s\n}", $type->name, static::printEnumValues($type->getValues(), $options));
     }
 
     /**
      * @param EnumValueDefinition[] $values
      * @param array<string, bool> $options
      */
-    private static function printEnumValues(array $values, array $options): string
+    protected static function printEnumValues(array $values, array $options): string
     {
         return implode(
             "\n",
             array_map(
                 static function ($value, $i) use ($options) {
-                    return self::printDescription($options, $value, '  ', !$i) .
+                    return static::printDescription($options, $value, '  ', !$i) .
                         '  ' .
                         $value->name .
-                        self::printDeprecated($value);
+                        static::printDeprecated($value);
                 },
                 $values,
                 array_keys($values)
@@ -577,11 +577,11 @@ class FederatedSchemaPrinter
     /**
      * @param array<string, bool> $options
      */
-    private static function printInputObject(InputObjectType $type, array $options): string
+    protected static function printInputObject(InputObjectType $type, array $options): string
     {
         $fields = array_values($type->getFields());
 
-        return self::printDescription($options, $type) .
+        return static::printDescription($options, $type) .
             sprintf(
                 "input %s {\n%s\n}",
                 $type->name,
@@ -589,7 +589,7 @@ class FederatedSchemaPrinter
                     "\n",
                     array_map(
                         static function ($f, $i) use ($options) {
-                            return self::printDescription($options, $f, '  ', !$i) . '  ' . self::printInputValue($f);
+                            return static::printDescription($options, $f, '  ', !$i) . '  ' . static::printInputValue($f);
                         },
                         $fields,
                         array_keys($fields)
@@ -605,7 +605,7 @@ class FederatedSchemaPrinter
      */
     public static function printIntrospectionSchema(Schema $schema, array $options = []): string
     {
-        return self::printFilteredSchema(
+        return static::printFilteredSchema(
             $schema,
             [Directive::class, 'isSpecifiedDirective'],
             [Introspection::class, 'isIntrospectionType'],
