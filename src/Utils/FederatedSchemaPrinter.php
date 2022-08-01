@@ -419,7 +419,7 @@ class FederatedSchemaPrinter
         $keyDirective = '';
 
         foreach ($type->getKeyFields() as $keyField) {
-            $keyDirective = $keyDirective . sprintf(' @key(fields: "%s")', $keyField);
+            $keyDirective = $keyDirective . sprintf(' @key(fields: "%s")', self::printKeyFields($keyField));
         }
 
         $isEntityRef = $type instanceof EntityRefObjectType;
@@ -499,11 +499,11 @@ class FederatedSchemaPrinter
         }
 
         if (isset($field->config[EntityObjectType::FIELD_DIRECTIVE_PROVIDES])) {
-            $directives[] = sprintf('@provides(fields: "%s")', $field->config[EntityObjectType::FIELD_DIRECTIVE_PROVIDES]);
+            $directives[] = sprintf('@provides(fields: "%s")', self::printKeyFields($field->config[EntityObjectType::FIELD_DIRECTIVE_PROVIDES]));
         }
 
         if (isset($field->config[EntityObjectType::FIELD_DIRECTIVE_REQUIRES])) {
-            $directives[] = sprintf('@requires(fields: "%s")', $field->config[EntityObjectType::FIELD_DIRECTIVE_REQUIRES]);
+            $directives[] = sprintf('@requires(fields: "%s")', self::printKeyFields($field->config[EntityObjectType::FIELD_DIRECTIVE_REQUIRES]));
         }
 
         return implode(' ', $directives);
@@ -516,6 +516,28 @@ class FederatedSchemaPrinter
     {
         return self::printDescription($options, $type) .
             sprintf("interface %s {\n%s\n}", $type->name, self::printFields($options, $type));
+    }
+
+    /**
+     * Print simple and compound primary key fields
+     * {@see https://www.apollographql.com/docs/federation/v1/entities#compound-primary-keys }.
+     *
+     * @param string|array<string|int, mixed> $keyFields
+     */
+    private static function printKeyFields($keyFields): string
+    {
+        $parts = [];
+        foreach (((array) $keyFields) as $index => $keyField) {
+            if (\is_string($keyField)) {
+                $parts[] = $keyField;
+            } elseif (\is_array($keyField)) {
+                $parts[] = sprintf('%s { %s }', $index, self::printKeyFields($keyField));
+            } else {
+                throw new \InvalidArgumentException('Invalid keyField config');
+            }
+        }
+
+        return implode(' ', $parts);
     }
 
     /**
