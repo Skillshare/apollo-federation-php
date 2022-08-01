@@ -1,7 +1,6 @@
 <?php
 
 /**
- * 
  * This source file includes modified code from webonyx/graphql-php.
  *
  * Copyright (c) 2015-present, Webonyx, LLC.
@@ -36,7 +35,6 @@ use Apollo\Federation\Enum\DirectiveEnum;
 use Apollo\Federation\FederatedSchema;
 use Apollo\Federation\Types\EntityObjectType;
 use Apollo\Federation\Types\EntityRefObjectType;
-
 use GraphQL\Error\Error;
 use GraphQL\Language\Printer;
 use GraphQL\Type\Definition\Directive;
@@ -62,7 +60,6 @@ use function array_keys;
 use function array_map;
 use function array_merge;
 use function array_values;
-use function count;
 use function explode;
 use function implode;
 use function ksort;
@@ -70,7 +67,6 @@ use function mb_strlen;
 use function preg_match_all;
 use function sprintf;
 use function str_replace;
-use function strlen;
 use function substr;
 
 /**
@@ -80,11 +76,10 @@ class FederatedSchemaPrinter
 {
     /**
      * Accepts options as a second argument:
-     *
      *    - commentDescriptions:
      *        Provide true to use preceding comments as the description.
      *
-     * @param bool[] $options
+     * @param array{ commentDescriptions: bool } $options
      *
      * @api
      */
@@ -157,11 +152,11 @@ class FederatedSchemaPrinter
      */
     private static function printDescription(array $options, $def, string $indentation = '', bool $firstInBlock = true): string
     {
-        if (!$def->description) {
+        if (!isset($def->description) || !$def->description) {
             return '';
         }
 
-        $lines = self::descriptionLines($def->description, 120 - strlen($indentation));
+        $lines = self::descriptionLines($def->description, 120 - \strlen($indentation));
 
         if (isset($options['commentDescriptions'])) {
             return self::printDescriptionWithComments($lines, $indentation, $firstInBlock);
@@ -170,7 +165,7 @@ class FederatedSchemaPrinter
         $description = $indentation && !$firstInBlock ? "\n" . $indentation . '"""' : $indentation . '"""';
 
         // In some circumstances, a single line can be used for the description.
-        if (count($lines) === 1 && mb_strlen($lines[0]) < 70 && substr($lines[0], -1) !== '"') {
+        if (1 === \count($lines) && mb_strlen($lines[0]) < 70 && '"' !== substr($lines[0], -1)) {
             return $description . self::escapeQuote($lines[0]) . "\"\"\"\n";
         }
 
@@ -183,8 +178,8 @@ class FederatedSchemaPrinter
 
         $lineLength = \count($lines);
 
-        for ($i = 0; $i < $lineLength; $i++) {
-            if ($i !== 0 || !$hasLeadingSpace) {
+        for ($i = 0; $i < $lineLength; ++$i) {
+            if (0 !== $i || !$hasLeadingSpace) {
                 $description .= $indentation;
             }
             $description .= self::escapeQuote($lines[$i]) . "\n";
@@ -204,7 +199,7 @@ class FederatedSchemaPrinter
         $rawLines = explode("\n", $description);
 
         foreach ($rawLines as $line) {
-            if ($line === '') {
+            if ('' === $line) {
                 $lines[] = $line;
             } else {
                 // For > 120 character long lines, cut at space boundaries into sublines
@@ -225,7 +220,7 @@ class FederatedSchemaPrinter
      */
     private static function breakLine(string $line, int $maxLen): array
     {
-        if (strlen($line) < $maxLen + 5) {
+        if (\strlen($line) < $maxLen + 5) {
             return [$line];
         }
 
@@ -244,7 +239,7 @@ class FederatedSchemaPrinter
         $description = $indentation && !$firstInBlock ? "\n" : '';
 
         foreach ($lines as $line) {
-            if ($line === '') {
+            if ('' === $line) {
                 $description .= $indentation . "#\n";
             } else {
                 $description .= $indentation . '# ' . $line . "\n";
@@ -317,7 +312,7 @@ class FederatedSchemaPrinter
     public static function printType(Type $type, array $options = []): string
     {
         if ($type instanceof ScalarType) {
-            if ($type->name !== FederatedSchema::RESERVED_TYPE_ANY) {
+            if (FederatedSchema::RESERVED_TYPE_ANY !== $type->name) {
                 return self::printScalar($type, $options);
             }
 
@@ -445,10 +440,10 @@ class FederatedSchemaPrinter
     {
         $fields = array_values($type->getFields());
 
-        if ($type->name === FederatedSchema::RESERVED_TYPE_QUERY) {
+        if (FederatedSchema::RESERVED_TYPE_QUERY === $type->name) {
             $fields = array_filter($fields, static function (FieldDefinition $field): bool {
-                return $field->name !== FederatedSchema::RESERVED_FIELD_SERVICE
-                    && $field->name !== FederatedSchema::RESERVED_FIELD_ENTITIES;
+                return FederatedSchema::RESERVED_FIELD_SERVICE !== $field->name
+                    && FederatedSchema::RESERVED_FIELD_ENTITIES !== $field->name;
             });
         }
 
@@ -481,7 +476,7 @@ class FederatedSchemaPrinter
         if (empty($reason)) {
             return '';
         }
-        if ($reason === '' || $reason === Directive::DEFAULT_DEPRECATION_REASON) {
+        if ('' === $reason || Directive::DEFAULT_DEPRECATION_REASON === $reason) {
             return ' @deprecated';
         }
 
@@ -493,7 +488,7 @@ class FederatedSchemaPrinter
         $directives = [];
 
         if (isset($field->config[EntityObjectType::FIELD_DIRECTIVE_IS_EXTERNAL])
-            && $field->config[EntityObjectType::FIELD_DIRECTIVE_IS_EXTERNAL] === true
+            && true === $field->config[EntityObjectType::FIELD_DIRECTIVE_IS_EXTERNAL]
         ) {
             $directives[] = '@external';
         }
@@ -604,7 +599,7 @@ class FederatedSchemaPrinter
     }
 
     /**
-     * @param bool[] $options
+     * @param array{ commentDescriptions: bool } $options
      *
      * @api
      */
