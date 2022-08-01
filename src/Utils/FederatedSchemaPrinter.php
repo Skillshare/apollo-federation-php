@@ -79,7 +79,7 @@ class FederatedSchemaPrinter
      *    - commentDescriptions:
      *        Provide true to use preceding comments as the description.
      *
-     * @param array{ commentDescriptions: bool } $options
+     * @param array<string, bool> $options
      *
      * @api
      */
@@ -103,7 +103,7 @@ class FederatedSchemaPrinter
     }
 
     /**
-     * @param bool[] $options
+     * @param array<string, bool> $options
      */
     private static function printFilteredSchema(Schema $schema, callable $directiveFilter, callable $typeFilter, array $options): string
     {
@@ -134,7 +134,7 @@ class FederatedSchemaPrinter
     }
 
     /**
-     * @param bool[] $options
+     * @param array<string, bool> $options
      */
     private static function printDirective(Directive $directive, array $options): string
     {
@@ -147,7 +147,7 @@ class FederatedSchemaPrinter
     }
 
     /**
-     * @param bool[] $options
+     * @param array<string, bool> $options
      * @param Directive|EnumValueDefinition|FieldArgument|Type|object $def
      */
     private static function printDescription(array $options, $def, string $indentation = '', bool $firstInBlock = true): string
@@ -307,7 +307,7 @@ class FederatedSchemaPrinter
     }
 
     /**
-     * @param bool[] $options
+     * @param array<string, bool> $options
      */
     public static function printType(Type $type, array $options = []): string
     {
@@ -355,7 +355,7 @@ class FederatedSchemaPrinter
     }
 
     /**
-     * @param bool[] $options
+     * @param array<string, bool> $options
      */
     private static function printScalar(ScalarType $type, array $options): string
     {
@@ -363,7 +363,7 @@ class FederatedSchemaPrinter
     }
 
     /**
-     * @param bool[] $options
+     * @param array<string, bool> $options
      */
     private static function printObject(ObjectType $type, array $options): string
     {
@@ -397,7 +397,7 @@ class FederatedSchemaPrinter
     }
 
     /**
-     * @param bool[] $options
+     * @param array<string, bool> $options
      */
     private static function printEntityObject(EntityObjectType $type, array $options): string
     {
@@ -433,7 +433,7 @@ class FederatedSchemaPrinter
     }
 
     /**
-     * @param bool[] $options
+     * @param array<string, bool> $options
      * @param EntityObjectType|InterfaceType|ObjectType $type
      */
     private static function printFields(array $options, TypeWithFields $type): string
@@ -505,7 +505,7 @@ class FederatedSchemaPrinter
     }
 
     /**
-     * @param bool[] $options
+     * @param array<string, bool> $options
      */
     private static function printInterface(InterfaceType $type, array $options): string
     {
@@ -536,7 +536,7 @@ class FederatedSchemaPrinter
     }
 
     /**
-     * @param bool[] $options
+     * @param array<string, bool> $options
      */
     private static function printUnion(UnionType $type, array $options): string
     {
@@ -545,7 +545,7 @@ class FederatedSchemaPrinter
     }
 
     /**
-     * @param bool[] $options
+     * @param array<string, bool> $options
      */
     private static function printEnum(EnumType $type, array $options): string
     {
@@ -555,7 +555,7 @@ class FederatedSchemaPrinter
 
     /**
      * @param EnumValueDefinition[] $values
-     * @param bool[] $options
+     * @param array<string, bool> $options
      */
     private static function printEnumValues(array $values, array $options): string
     {
@@ -575,7 +575,7 @@ class FederatedSchemaPrinter
     }
 
     /**
-     * @param bool[] $options
+     * @param array<string, bool> $options
      */
     private static function printInputObject(InputObjectType $type, array $options): string
     {
@@ -599,7 +599,7 @@ class FederatedSchemaPrinter
     }
 
     /**
-     * @param array{ commentDescriptions: bool } $options
+     * @param array<string, bool> $options
      *
      * @api
      */
