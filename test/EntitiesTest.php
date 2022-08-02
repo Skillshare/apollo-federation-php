@@ -14,7 +14,7 @@ class EntitiesTest extends TestCase
 {
     use MatchesSnapshots;
 
-    public function testCreatingEntityType()
+    public function testCreatingEntityType(): void
     {
         $userTypeKeyFields = ['id', 'email'];
 
@@ -25,15 +25,15 @@ class EntitiesTest extends TestCase
                 'id' => ['type' => Type::int()],
                 'email' => ['type' => Type::string()],
                 'firstName' => ['type' => Type::string()],
-                'lastName' => ['type' => Type::string()]
-            ]
+                'lastName' => ['type' => Type::string()],
+            ],
         ]);
 
         $this->assertEqualsCanonicalizing($userType->getKeyFields(), $userTypeKeyFields);
         $this->assertMatchesSnapshot($userType->config);
     }
 
-    public function testCreatingEntityTypeWithCallable()
+    public function testCreatingEntityTypeWithCallable(): void
     {
         $userTypeKeyFields = ['id', 'email'];
 
@@ -45,23 +45,23 @@ class EntitiesTest extends TestCase
                     'id' => ['type' => Type::int()],
                     'email' => ['type' => Type::string()],
                     'firstName' => ['type' => Type::string()],
-                    'lastName' => ['type' => Type::string()]
+                    'lastName' => ['type' => Type::string()],
                 ];
-            }
+            },
         ]);
 
         $this->assertEqualsCanonicalizing($userType->getKeyFields(), $userTypeKeyFields);
         $this->assertMatchesSnapshot($userType->config);
     }
 
-    public function testResolvingEntityReference()
+    public function testResolvingEntityReference(): void
     {
         $expectedRef = [
             'id' => 1,
             'email' => 'luke@skywalker.com',
             'firstName' => 'Luke',
             'lastName' => 'Skywalker',
-            '__typename' => 'User'
+            '__typename' => 'User',
         ];
 
         $userType = new EntityObjectType([
@@ -71,11 +71,11 @@ class EntitiesTest extends TestCase
                 'id' => ['type' => Type::int()],
                 'email' => ['type' => Type::string()],
                 'firstName' => ['type' => Type::string()],
-                'lastName' => ['type' => Type::string()]
+                'lastName' => ['type' => Type::string()],
             ],
             '__resolveReference' => function () use ($expectedRef) {
                 return $expectedRef;
-            }
+            },
         ]);
 
         $actualRef = $userType->resolveReference(['id' => 1, 'email' => 'luke@skywalker.com', '__typename' => 'User']);
@@ -83,7 +83,7 @@ class EntitiesTest extends TestCase
         $this->assertEquals($expectedRef, $actualRef);
     }
 
-    public function testCreatingEntityRefType()
+    public function testCreatingEntityRefType(): void
     {
         $userTypeKeyFields = ['id', 'email'];
 
@@ -92,8 +92,8 @@ class EntitiesTest extends TestCase
             'keyFields' => $userTypeKeyFields,
             'fields' => [
                 'id' => ['type' => Type::int()],
-                'email' => ['type' => Type::string()]
-            ]
+                'email' => ['type' => Type::string()],
+            ],
         ]);
 
         $this->assertEqualsCanonicalizing($userType->getKeyFields(), $userTypeKeyFields);
