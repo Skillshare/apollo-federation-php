@@ -71,12 +71,8 @@ class FederatedSchemaPrinter extends SchemaPrinter
     {
         return static::printFilteredSchema(
             $schema,
-            static function (Directive $type): bool {
-                return !Directive::isSpecifiedDirective($type) && !static::isFederatedDirective($type);
-            },
-            static function (Type $type): bool {
-                return !Type::isBuiltInType($type);
-            },
+            static fn (Directive $type): bool => !Directive::isSpecifiedDirective($type) && !static::isFederatedDirective($type),
+            static fn (Type $type): bool => !Type::isBuiltInType($type),
             $options
         );
     }
@@ -113,16 +109,7 @@ class FederatedSchemaPrinter extends SchemaPrinter
             return '';
         }
 
-        $interfaces = $type->getInterfaces();
-        $implementedInterfaces = !empty($interfaces)
-            ? ' implements ' .
-                implode(
-                    ' & ',
-                    array_map(static function ($i) {
-                        return $i->name;
-                    }, $interfaces)
-                )
-            : '';
+        $implementedInterfaces = static::printImplementedInterfaces($type);
 
         $queryExtends = \in_array($type->name, [FederatedSchema::RESERVED_TYPE_QUERY, FederatedSchema::RESERVED_TYPE_MUTATION], true)
             ? 'extend '
@@ -143,22 +130,8 @@ class FederatedSchemaPrinter extends SchemaPrinter
      */
     protected static function printEntityObject(EntityObjectType $type, array $options): string
     {
-        $interfaces = $type->getInterfaces();
-        $implementedInterfaces = !empty($interfaces)
-            ? ' implements ' .
-                implode(
-                    ' & ',
-                    array_map(static function ($i) {
-                        return $i->name;
-                    }, $interfaces)
-                )
-            : '';
-
-        $keyDirective = '';
-
-        foreach ($type->getKeyFields() as $keyField) {
-            $keyDirective = $keyDirective . sprintf(' @key(fields: "%s")', static::printKeyFields($keyField));
-        }
+        $implementedInterfaces = static::printImplementedInterfaces($type);
+        $keyDirective = static::printKeyDirective($type);
 
         $isEntityRef = $type instanceof EntityRefObjectType;
         $extends = $isEntityRef ? 'extend ' : '';
@@ -184,8 +157,9 @@ class FederatedSchemaPrinter extends SchemaPrinter
 
         if (FederatedSchema::RESERVED_TYPE_QUERY === $type->name) {
             $fields = array_filter($fields, static function (FieldDefinition $field): bool {
-                return FederatedSchema::RESERVED_FIELD_SERVICE !== $field->name
-                    && FederatedSchema::RESERVED_FIELD_ENTITIES !== $field->name;
+                $excludedFields = [FederatedSchema::RESERVED_FIELD_SERVICE, FederatedSchema::RESERVED_FIELD_ENTITIES];
+
+                return !\in_array($field->name, $excludedFields, true);
             });
         }
 
@@ -228,6 +202,26 @@ class FederatedSchemaPrinter extends SchemaPrinter
         }
 
         return implode(' ', $directives);
+    }
+
+    protected static function printImplementedInterfaces(ObjectType $type): string
+    {
+        $interfaces = $type->getInterfaces();
+
+        return !empty($interfaces)
+            ? ' implements ' . implode(' & ', array_map(static fn (InterfaceType $i): string => $i->name, $interfaces))
+            : '';
+    }
+
+    protected static function printKeyDirective(EntityObjectType $type): string
+    {
+        $keyDirective = '';
+
+        foreach ($type->getKeyFields() as $keyField) {
+            $keyDirective .= sprintf(' @key(fields: "%s")', static::printKeyFields($keyField));
+        }
+
+        return $keyDirective;
     }
 
     /**
