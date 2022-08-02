@@ -17,7 +17,7 @@ class ExternalDirective extends Directive
     {
         parent::__construct([
             'name' => DirectiveEnum::EXTERNAL,
-            'locations' => [DirectiveLocation::FIELD_DEFINITION]
+            'locations' => [DirectiveLocation::FIELD_DEFINITION],
         ]);
     }
 }

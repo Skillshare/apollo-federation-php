@@ -3,10 +3,10 @@
 namespace Apollo\Federation\Directives;
 
 use Apollo\Federation\Enum\DirectiveEnum;
-use GraphQL\Type\Definition\Type;
+use GraphQL\Language\DirectiveLocation;
 use GraphQL\Type\Definition\Directive;
 use GraphQL\Type\Definition\FieldArgument;
-use GraphQL\Language\DirectiveLocation;
+use GraphQL\Type\Definition\Type;
 
 /**
  * The `@requires` directive is used to annotate the required input fieldset from a base type
@@ -23,9 +23,9 @@ class RequiresDirective extends Directive
             'args' => [
                 new FieldArgument([
                     'name' => 'fields',
-                    'type' => Type::nonNull(Type::string())
-                ])
-            ]
+                    'type' => Type::nonNull(Type::string()),
+                ]),
+            ],
         ]);
     }
 }
