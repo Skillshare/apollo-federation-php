@@ -50,14 +50,16 @@ class EntityObjectType extends ObjectType
     public const FIELD_DIRECTIVE_PROVIDES = 'provides';
     public const FIELD_DIRECTIVE_REQUIRES = 'requires';
 
-    /** @var array */
-    private $keyFields;
-
     /** @var callable|null */
     public $referenceResolver = null;
 
     /**
-     * @param mixed[] $config
+     * @var array<int,string>|array<int|string,string|array<int|string,mixed>>
+     */
+    private array $keyFields;
+
+    /**
+     * @param array<string,mixed> $config
      */
     public function __construct(array $config)
     {
@@ -74,7 +76,7 @@ class EntityObjectType extends ObjectType
     /**
      * Gets the fields that serve as the unique key or identifier of the entity.
      *
-     * @return array
+     * @return array<int,string>|array<int|string,string|array<int|string,mixed>>
      */
     public function getKeyFields(): array
     {
@@ -106,30 +108,23 @@ class EntityObjectType extends ObjectType
         return ($this->referenceResolver)($ref, $context, $info);
     }
 
-    /**
-     * @return void
-     */
-    private function validateReferenceResolver()
+    private function validateReferenceResolver(): void
     {
         Utils::invariant(isset($this->referenceResolver), 'No reference resolver was set in the configuration.');
     }
 
     /**
      * @param array{ __typename: mixed } $ref
-     *
-     * @return void
      */
-    private function validateReferenceKeys($ref)
+    private function validateReferenceKeys(array $ref): void
     {
         Utils::invariant(isset($ref[FederatedSchema::RESERVED_FIELD_TYPE_NAME]), 'Type name must be provided in the reference.');
     }
 
     /**
      * @param array{ __resolveReference: mixed } $config
-     *
-     * @return void
      */
-    public static function validateResolveReference(array $config)
+    public static function validateResolveReference(array $config): void
     {
         Utils::invariant(\is_callable($config[self::FIELD_REFERENCE_RESOLVER]), 'Reference resolver has to be callable.');
     }
