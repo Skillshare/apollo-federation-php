@@ -110,15 +110,12 @@ class FederatedSchemaPrinter extends SchemaPrinter
         }
 
         $implementedInterfaces = static::printImplementedInterfaces($type);
-
-        $queryExtends = \in_array($type->name, [FederatedSchema::RESERVED_TYPE_QUERY, FederatedSchema::RESERVED_TYPE_MUTATION], true)
-            ? 'extend '
-            : '';
+        $extends = FederatedSchema::isReservedRootType($type->name) ? 'extend ' : '';
 
         return static::printDescription($options, $type) .
             sprintf(
                 "%stype %s%s {\n%s\n}",
-                $queryExtends,
+                $extends,
                 $type->name,
                 $implementedInterfaces,
                 static::printFields($options, $type)
@@ -132,9 +129,7 @@ class FederatedSchemaPrinter extends SchemaPrinter
     {
         $implementedInterfaces = static::printImplementedInterfaces($type);
         $keyDirective = static::printKeyDirective($type);
-
-        $isEntityRef = $type instanceof EntityRefObjectType;
-        $extends = $isEntityRef ? 'extend ' : '';
+        $extends = $type instanceof EntityRefObjectType ? 'extend ' : '';
 
         return static::printDescription($options, $type) .
             sprintf(

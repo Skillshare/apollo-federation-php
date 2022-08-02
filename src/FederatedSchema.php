@@ -74,6 +74,11 @@ class FederatedSchema extends Schema
     /** @var Directive[] */
     protected $entityDirectives;
 
+    public static function isReservedRootType(string $name): bool
+    {
+        return \in_array($name, [self::RESERVED_TYPE_QUERY, self::RESERVED_TYPE_MUTATION], true);
+    }
+
     /**
      * @param array<string,mixed> $config
      */
