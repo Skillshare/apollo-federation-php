@@ -23,8 +23,8 @@ class DirectivesTest extends TestCase
 
         $expectedLocations = [DirectiveLocation::OBJECT, DirectiveLocation::IFACE];
 
-        $this->assertEquals($config['name'], 'key');
-        $this->assertEqualsCanonicalizing($config['locations'], $expectedLocations);
+        $this->assertEquals('key', $config['name']);
+        $this->assertEqualsCanonicalizing($expectedLocations, $config['locations']);
     }
 
     public function testExternalDirective(): void
@@ -33,8 +33,8 @@ class DirectivesTest extends TestCase
 
         $expectedLocations = [DirectiveLocation::FIELD_DEFINITION];
 
-        $this->assertEquals($config['name'], 'external');
-        $this->assertEqualsCanonicalizing($config['locations'], $expectedLocations);
+        $this->assertEquals('external', $config['name']);
+        $this->assertEqualsCanonicalizing($expectedLocations, $config['locations']);
     }
 
     public function testRequiresDirective(): void
@@ -43,8 +43,8 @@ class DirectivesTest extends TestCase
 
         $expectedLocations = [DirectiveLocation::FIELD_DEFINITION];
 
-        $this->assertEquals($config['name'], 'requires');
-        $this->assertEqualsCanonicalizing($config['locations'], $expectedLocations);
+        $this->assertEquals('requires', $config['name']);
+        $this->assertEqualsCanonicalizing($expectedLocations, $config['locations']);
     }
 
     public function testProvidesDirective(): void
@@ -53,8 +53,8 @@ class DirectivesTest extends TestCase
 
         $expectedLocations = [DirectiveLocation::FIELD_DEFINITION];
 
-        $this->assertEquals($config['name'], 'provides');
-        $this->assertEqualsCanonicalizing($config['locations'], $expectedLocations);
+        $this->assertEquals('provides', $config['name']);
+        $this->assertEqualsCanonicalizing($expectedLocations, $config['locations']);
     }
 
     public function testItAddsDirectivesToSchema(): void

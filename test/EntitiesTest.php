@@ -16,11 +16,11 @@ class EntitiesTest extends TestCase
 
     public function testCreatingEntityType(): void
     {
-        $userTypeKeyFields = ['id', 'email'];
+        $expectedKeyFields = ['id', 'email'];
 
         $userType = new EntityObjectType([
             'name' => 'User',
-            'keyFields' => $userTypeKeyFields,
+            'keyFields' => $expectedKeyFields,
             'fields' => [
                 'id' => ['type' => Type::int()],
                 'email' => ['type' => Type::string()],
@@ -29,17 +29,17 @@ class EntitiesTest extends TestCase
             ],
         ]);
 
-        $this->assertEqualsCanonicalizing($userType->getKeyFields(), $userTypeKeyFields);
+        $this->assertEqualsCanonicalizing($expectedKeyFields, $userType->getKeyFields());
         $this->assertMatchesSnapshot($userType->config);
     }
 
     public function testCreatingEntityTypeWithCallable(): void
     {
-        $userTypeKeyFields = ['id', 'email'];
+        $expectedKeyFields = ['id', 'email'];
 
         $userType = new EntityObjectType([
             'name' => 'User',
-            'keyFields' => $userTypeKeyFields,
+            'keyFields' => $expectedKeyFields,
             'fields' => function () {
                 return [
                     'id' => ['type' => Type::int()],
@@ -50,7 +50,7 @@ class EntitiesTest extends TestCase
             },
         ]);
 
-        $this->assertEqualsCanonicalizing($userType->getKeyFields(), $userTypeKeyFields);
+        $this->assertEqualsCanonicalizing($expectedKeyFields, $userType->getKeyFields());
         $this->assertMatchesSnapshot($userType->config);
     }
 
@@ -85,18 +85,18 @@ class EntitiesTest extends TestCase
 
     public function testCreatingEntityRefType(): void
     {
-        $userTypeKeyFields = ['id', 'email'];
+        $expectedKeyFields = ['id', 'email'];
 
         $userType = new EntityRefObjectType([
             'name' => 'User',
-            'keyFields' => $userTypeKeyFields,
+            'keyFields' => $expectedKeyFields,
             'fields' => [
                 'id' => ['type' => Type::int()],
                 'email' => ['type' => Type::string()],
             ],
         ]);
 
-        $this->assertEqualsCanonicalizing($userType->getKeyFields(), $userTypeKeyFields);
+        $this->assertEqualsCanonicalizing($expectedKeyFields, $userType->getKeyFields());
         $this->assertMatchesSnapshot($userType->config);
     }
 }
