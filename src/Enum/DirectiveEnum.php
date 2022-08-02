@@ -7,19 +7,31 @@ namespace Apollo\Federation\Enum;
 class DirectiveEnum
 {
     public const EXTERNAL = 'external';
+    public const INACCESSIBLE = 'inaccessible';
     public const KEY = 'key';
+    public const OVERRIDE = 'override';
     public const PROVIDES = 'provides';
     public const REQUIRES = 'requires';
+    public const SHAREABLE = 'shareable';
+
+    /**
+     * @var string[]|null
+     */
+    protected static ?array $constants = null;
 
     /**
      * @return string[]
      */
     public static function getAll(): array
     {
-        return [self::EXTERNAL, self::KEY, self::PROVIDES, self::REQUIRES];
+        if (null === static::$constants) {
+            static::$constants = (new \ReflectionClass(static::class))->getConstants();
+        }
+
+        return static::$constants;
     }
 
-    private function __construct()
+    protected function __construct()
     {
         // forbid creation of an object
     }

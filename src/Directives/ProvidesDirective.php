@@ -11,6 +11,8 @@ use GraphQL\Type\Definition\Type;
 /**
  * The `@provides` directive is used to annotate the expected returned fieldset from a field
  * on a base type that is guaranteed to be selectable by the gateway.
+ *
+ * @see https://www.apollographql.com/docs/federation/federated-types/federated-directives/#provides
  */
 class ProvidesDirective extends Directive
 {

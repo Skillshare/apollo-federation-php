@@ -37,6 +37,21 @@ class DirectivesTest extends TestCase
         $this->assertEqualsCanonicalizing($expectedLocations, $config['locations']);
     }
 
+    public function testInaccessibleDirective(): void
+    {
+        $config = Directives::inaccessible()->config;
+
+        $expectedLocations = [
+            DirectiveLocation::FIELD_DEFINITION,
+            DirectiveLocation::IFACE,
+            DirectiveLocation::OBJECT,
+            DirectiveLocation::UNION,
+        ];
+
+        $this->assertEquals('inaccessible', $config['name']);
+        $this->assertEqualsCanonicalizing($expectedLocations, $config['locations']);
+    }
+
     public function testRequiresDirective(): void
     {
         $config = Directives::requires()->config;
@@ -54,6 +69,16 @@ class DirectivesTest extends TestCase
         $expectedLocations = [DirectiveLocation::FIELD_DEFINITION];
 
         $this->assertEquals('provides', $config['name']);
+        $this->assertEqualsCanonicalizing($expectedLocations, $config['locations']);
+    }
+
+    public function testShareableDirective(): void
+    {
+        $config = Directives::shareable()->config;
+
+        $expectedLocations = [DirectiveLocation::FIELD_DEFINITION, DirectiveLocation::OBJECT];
+
+        $this->assertEquals('shareable', $config['name']);
         $this->assertEqualsCanonicalizing($expectedLocations, $config['locations']);
     }
 
