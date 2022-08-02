@@ -83,7 +83,7 @@ class StarWarsSchema
                     'provides' => 'name',
                 ],
             ],
-            EntityObjectType::FIELD_KEYS => ['fields' => 'id'],
+            EntityObjectType::FIELD_KEYS => [['fields' => 'id']],
             EntityObjectType::FIELD_REFERENCE_RESOLVER => static function (array $ref): array {
                 $entity = StarWarsData::getEpisodeById($ref['id']);
                 $entity['__typename'] = 'Episode';
@@ -113,7 +113,7 @@ class StarWarsSchema
                     'requires' => 'name',
                 ],
             ],
-            EntityObjectType::FIELD_KEYS => ['fields' => 'id'],
+            EntityObjectType::FIELD_KEYS => [['fields' => 'id', 'resolvable' => false]],
         ]);
     }
 
@@ -132,7 +132,7 @@ class StarWarsSchema
                     'isExternal' => true,
                 ],
             ],
-            EntityObjectType::FIELD_KEYS => ['fields' => 'id'],
+            EntityObjectType::FIELD_KEYS => [['fields' => 'id', 'resolvable' => false]],
         ]);
     }
 }

@@ -50,7 +50,7 @@ use Apollo\Federation\Types\EntityRefObjectType;
 
 $userType = new EntityRefObjectType([
     'name' => 'User',
-    'keys' => [['fields' => 'id'], ['fields' => 'email']],
+    'keys' => [['fields' => 'id', 'resolvable' => false]],
     'fields' => [
         'id' => ['type' => Type::int()],
         'email' => ['type' => Type::string()]
