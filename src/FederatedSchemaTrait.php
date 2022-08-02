@@ -91,9 +91,7 @@ trait FederatedSchemaTrait
             'fields' => [
                 self::RESERVED_FIELD_SDL => [
                     'type' => Type::string(),
-                    'resolve' => function () {
-                        return FederatedSchemaPrinter::doPrint($this);
-                    },
+                    'resolve' => fn (): string => FederatedSchemaPrinter::doPrint($this),
                 ],
             ],
         ]);
@@ -101,9 +99,7 @@ trait FederatedSchemaTrait
         return [
             self::RESERVED_FIELD_SERVICE => [
                 'type' => Type::nonNull($serviceType),
-                'resolve' => function () {
-                    return [];
-                },
+                'resolve' => static fn (): array => [],
             ],
         ];
     }
@@ -126,9 +122,7 @@ trait FederatedSchemaTrait
 
         $anyType = new CustomScalarType([
             'name' => self::RESERVED_TYPE_ANY,
-            'serialize' => function ($value) {
-                return $value;
-            },
+            'serialize' => static fn ($value) => $value,
         ]);
 
         return [
