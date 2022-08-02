@@ -143,7 +143,11 @@ class EntityObjectType extends ObjectType
      */
     private function validateReferenceKeys(array $ref): void
     {
-        Utils::invariant(isset($ref[FederatedSchema::RESERVED_FIELD_TYPE_NAME]), 'Type name must be provided in the reference.');
+        Utils::invariant(
+            isset($ref[FederatedSchema::RESERVED_FIELD_TYPE_NAME])
+            && $ref[FederatedSchema::RESERVED_FIELD_TYPE_NAME] === $this->config['name'],
+            'Type name must be provided in the reference.'
+        );
     }
 
     /**
