@@ -103,28 +103,6 @@ class FederatedSchemaPrinter extends SchemaPrinter
     /**
      * @param array<string, bool> $options
      */
-    protected static function printObject(ObjectType $type, array $options): string
-    {
-        if (empty($type->getFields())) {
-            return '';
-        }
-
-        $implementedInterfaces = static::printImplementedInterfaces($type);
-        $extends = FederatedSchema::isReservedRootType($type->name) ? 'extend ' : '';
-
-        return static::printDescription($options, $type) .
-            sprintf(
-                "%stype %s%s {\n%s\n}",
-                $extends,
-                $type->name,
-                $implementedInterfaces,
-                static::printFields($options, $type)
-            );
-    }
-
-    /**
-     * @param array<string, bool> $options
-     */
     protected static function printEntityObject(EntityObjectType $type, array $options): string
     {
         $implementedInterfaces = static::printImplementedInterfaces($type);
@@ -140,6 +118,27 @@ class FederatedSchemaPrinter extends SchemaPrinter
                 $keyDirective,
                 static::printFields($options, $type)
             );
+    }
+
+    protected static function printFieldFederatedDirectives(FieldDefinition $field): string
+    {
+        $directives = [];
+
+        if (isset($field->config[EntityObjectType::FIELD_DIRECTIVE_IS_EXTERNAL])
+            && true === $field->config[EntityObjectType::FIELD_DIRECTIVE_IS_EXTERNAL]
+        ) {
+            $directives[] = '@external';
+        }
+
+        if (isset($field->config[EntityObjectType::FIELD_DIRECTIVE_PROVIDES])) {
+            $directives[] = sprintf('@provides(fields: "%s")', static::printKeyFields($field->config[EntityObjectType::FIELD_DIRECTIVE_PROVIDES]));
+        }
+
+        if (isset($field->config[EntityObjectType::FIELD_DIRECTIVE_REQUIRES])) {
+            $directives[] = sprintf('@requires(fields: "%s")', static::printKeyFields($field->config[EntityObjectType::FIELD_DIRECTIVE_REQUIRES]));
+        }
+
+        return implode(' ', $directives);
     }
 
     /**
@@ -176,27 +175,6 @@ class FederatedSchemaPrinter extends SchemaPrinter
                 array_keys($fields)
             )
         );
-    }
-
-    protected static function printFieldFederatedDirectives(FieldDefinition $field): string
-    {
-        $directives = [];
-
-        if (isset($field->config[EntityObjectType::FIELD_DIRECTIVE_IS_EXTERNAL])
-            && true === $field->config[EntityObjectType::FIELD_DIRECTIVE_IS_EXTERNAL]
-        ) {
-            $directives[] = '@external';
-        }
-
-        if (isset($field->config[EntityObjectType::FIELD_DIRECTIVE_PROVIDES])) {
-            $directives[] = sprintf('@provides(fields: "%s")', static::printKeyFields($field->config[EntityObjectType::FIELD_DIRECTIVE_PROVIDES]));
-        }
-
-        if (isset($field->config[EntityObjectType::FIELD_DIRECTIVE_REQUIRES])) {
-            $directives[] = sprintf('@requires(fields: "%s")', static::printKeyFields($field->config[EntityObjectType::FIELD_DIRECTIVE_REQUIRES]));
-        }
-
-        return implode(' ', $directives);
     }
 
     protected static function printImplementedInterfaces(ObjectType $type): string
@@ -239,5 +217,27 @@ class FederatedSchemaPrinter extends SchemaPrinter
         }
 
         return implode(' ', $parts);
+    }
+
+    /**
+     * @param array<string, bool> $options
+     */
+    protected static function printObject(ObjectType $type, array $options): string
+    {
+        if (empty($type->getFields())) {
+            return '';
+        }
+
+        $implementedInterfaces = static::printImplementedInterfaces($type);
+        $extends = FederatedSchema::isReservedRootType($type->name) ? 'extend ' : '';
+
+        return static::printDescription($options, $type) .
+            sprintf(
+                "%stype %s%s {\n%s\n}",
+                $extends,
+                $type->name,
+                $implementedInterfaces,
+                static::printFields($options, $type)
+            );
     }
 }
