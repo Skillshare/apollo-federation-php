@@ -36,7 +36,7 @@ use GraphQL\Utils\Utils;
  *         'firstName' => [...],
  *         'lastName' => [...],
  *       ],
- *       'keyFields' => ['id', 'email']
+ *       'keys' => [['fields' => 'id'], ['fields' => 'email']]
  *     ]);
  *
  *     $queryType = new GraphQL\Type\Definition\ObjectType([

@@ -22,7 +22,7 @@ use GraphQL\Type\Definition\Type;
 
 $userType = new EntityObjectType([
     'name' => 'User',
-    'keyFields' => ['id', 'email'],
+    'keys' => [['fields' => 'id'], ['fields' => 'email']],
     'fields' => [
         'id' => ['type' => Type::int()],
         'email' => ['type' => Type::string()],
@@ -35,7 +35,7 @@ $userType = new EntityObjectType([
 ]);
 ```
 
-* `keyFields` — defines the entity's primary key, which consists of one or more of the fields. An entity's key cannot include fields that return a union or interface.
+* `keys` — defines the entity's primary key, which consists of one or more of the fields. An entity's key cannot include fields that return a union or interface.
 
 * `__resolveReference` — resolves the representation of the entity from the provided reference. Subgraphs use representations to reference entities from other subgraphs. A representation requires only an explicit __typename definition and values for the entity's primary key fields.
 
@@ -50,7 +50,7 @@ use Apollo\Federation\Types\EntityRefObjectType;
 
 $userType = new EntityRefObjectType([
     'name' => 'User',
-    'keyFields' => ['id', 'email'],
+    'keys' => [['fields' => 'id'], ['fields' => 'email']],
     'fields' => [
         'id' => ['type' => Type::int()],
         'email' => ['type' => Type::string()]
@@ -69,16 +69,12 @@ use Apollo\Federation\Types\EntityRefObjectType;
 
 $userType = new EntityRefObjectType([
     'name' => 'User',
-    'keyFields' => ['id', 'email'],
+    'keys' => [['fields' => 'id', 'resolvable' => false]],
     'fields' => [
         'id' => [
             'type' => Type::int(),
             'isExternal' => true
         ],
-        'email' => [
-            'type' => Type::string(),
-            'isExternal' => true
-        ]
     ]
 ]);
 ```

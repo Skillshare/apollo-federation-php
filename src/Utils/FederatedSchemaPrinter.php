@@ -31,6 +31,7 @@ declare(strict_types=1);
 
 namespace Apollo\Federation\Utils;
 
+use Apollo\Federation\Directives\KeyDirective;
 use Apollo\Federation\Enum\DirectiveEnum;
 use Apollo\Federation\FederatedSchema;
 use Apollo\Federation\Types\EntityObjectType;
@@ -192,8 +193,12 @@ class FederatedSchemaPrinter extends SchemaPrinter
     {
         $keyDirective = '';
 
-        foreach ($type->getKeyFields() as $keyField) {
-            $keyDirective .= sprintf(' @key(fields: "%s")', static::printKeyFields($keyField));
+        foreach ($type->getKeys() as $keyField) {
+            $arguments = [sprintf('%s: "%s"', KeyDirective::ARGUMENT_FIELDS, static::printKeyFields($keyField['fields']))];
+            if (\array_key_exists('resolvable', $keyField)) {
+                $arguments[] = sprintf('%s: %s', KeyDirective::ARGUMENT_RESOLVABLE, $keyField['resolvable'] ? 'true' : 'false');
+            }
+            $keyDirective .= sprintf(' @key(%s)', implode(', ', $arguments));
         }
 
         return $keyDirective;

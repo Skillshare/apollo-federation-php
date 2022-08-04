@@ -1,5 +1,5 @@
 name: User
-keyFields:
-    - id
-    - email
+keys:
+    - { fields: id }
+    - { fields: email }
 fields: {  }

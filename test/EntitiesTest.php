@@ -16,11 +16,11 @@ class EntitiesTest extends TestCase
 
     public function testCreatingEntityType(): void
     {
-        $expectedKeyFields = ['id', 'email'];
+        $expectedKeys = [['fields' => 'id'], ['fields' => 'email']];
 
         $userType = new EntityObjectType([
             'name' => 'User',
-            'keyFields' => $expectedKeyFields,
+            'keys' => $expectedKeys,
             'fields' => [
                 'id' => ['type' => Type::int()],
                 'email' => ['type' => Type::string()],
@@ -29,17 +29,17 @@ class EntitiesTest extends TestCase
             ],
         ]);
 
-        $this->assertEqualsCanonicalizing($expectedKeyFields, $userType->getKeyFields());
+        $this->assertEqualsCanonicalizing($expectedKeys, $userType->getKeys());
         $this->assertMatchesSnapshot($userType->config);
     }
 
     public function testCreatingEntityTypeWithCallable(): void
     {
-        $expectedKeyFields = ['id', 'email'];
+        $expectedKeys = [['fields' => 'id'], ['fields' => 'email']];
 
         $userType = new EntityObjectType([
             'name' => 'User',
-            'keyFields' => $expectedKeyFields,
+            'keys' => $expectedKeys,
             'fields' => function () {
                 return [
                     'id' => ['type' => Type::int()],
@@ -50,7 +50,7 @@ class EntitiesTest extends TestCase
             },
         ]);
 
-        $this->assertEqualsCanonicalizing($expectedKeyFields, $userType->getKeyFields());
+        $this->assertEqualsCanonicalizing($expectedKeys, $userType->getKeys());
         $this->assertMatchesSnapshot($userType->config);
     }
 
@@ -66,7 +66,7 @@ class EntitiesTest extends TestCase
 
         $userType = new EntityObjectType([
             'name' => 'User',
-            'keyFields' => ['id', 'email'],
+            'keys' => [['fields' => 'id'], ['fields' => 'email']],
             'fields' => [
                 'id' => ['type' => Type::int()],
                 'email' => ['type' => Type::string()],
@@ -85,18 +85,18 @@ class EntitiesTest extends TestCase
 
     public function testCreatingEntityRefType(): void
     {
-        $expectedKeyFields = ['id', 'email'];
+        $expectedKeys = [['fields' => 'id', 'resolvable' => false]];
 
         $userType = new EntityRefObjectType([
             'name' => 'User',
-            'keyFields' => $expectedKeyFields,
+            'keys' => $expectedKeys,
             'fields' => [
                 'id' => ['type' => Type::int()],
                 'email' => ['type' => Type::string()],
             ],
         ]);
 
-        $this->assertEqualsCanonicalizing($expectedKeyFields, $userType->getKeyFields());
+        $this->assertEqualsCanonicalizing($expectedKeys, $userType->getKeys());
         $this->assertMatchesSnapshot($userType->config);
     }
 }

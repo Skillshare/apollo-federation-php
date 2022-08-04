@@ -22,7 +22,7 @@ use GraphQL\Utils\Utils;
  * <code>
  *     $userType = new Apollo\Federation\Types\EntityObjectType([
  *       'name' => 'User',
- *       'keyFields' => ['id', 'email'],
+ *       'keys' => [['fields' => 'id'], ['fields' => 'email']],
  *       'fields' => [...]
  *     ]);
  * </code>
@@ -31,7 +31,7 @@ use GraphQL\Utils\Utils;
  * <code>
  *     $userType = new Apollo\Federation\Types\EntityObjectType([
  *       'name' => 'User',
- *       'keyFields' => ['id', 'email'],
+ *       'keys' => [['fields' => 'id', 'resolvable': false ]],
  *       'fields' => [
  *         'id' => [
  *           'type' => Types::int(),
@@ -43,7 +43,7 @@ use GraphQL\Utils\Utils;
  */
 class EntityObjectType extends ObjectType
 {
-    public const FIELD_KEY_FIELDS = 'keyFields';
+    public const FIELD_KEYS = 'keys';
     public const FIELD_REFERENCE_RESOLVER = '__resolveReference';
 
     public const FIELD_DIRECTIVE_IS_EXTERNAL = 'isExternal';
@@ -54,16 +54,22 @@ class EntityObjectType extends ObjectType
     public $referenceResolver = null;
 
     /**
-     * @var array<int,string>|array<int|string,string|array<int|string,mixed>>
+     * @var array<int,array{fields: array<int,string>|array<int|string,string|array<int|string,mixed>>, resolvable: bool }>
      */
-    private array $keyFields;
+    private array $keys;
 
     /**
      * @param array<string,mixed> $config
      */
     public function __construct(array $config)
     {
-        $this->keyFields = $config[self::FIELD_KEY_FIELDS];
+        Utils::invariant(
+            !(\array_key_exists(self::FIELD_KEYS, $config) && \array_key_exists('keyFields', $config)),
+            'Use only one way to define directives @key.'
+        );
+
+        $this->keys = $config[self::FIELD_KEYS]
+            ?? array_map(static fn ($x): array => ['fields' => $x], $config['keyFields']);
 
         if (isset($config[self::FIELD_REFERENCE_RESOLVER])) {
             self::validateResolveReference($config);
@@ -76,11 +82,30 @@ class EntityObjectType extends ObjectType
     /**
      * Gets the fields that serve as the unique key or identifier of the entity.
      *
+     * @deprecated Use {@see getKeys()}
+     *
      * @return array<int,string>|array<int|string,string|array<int|string,mixed>>
      */
     public function getKeyFields(): array
     {
-        return $this->keyFields;
+        @trigger_error(
+            'Since skillshare/apollo-federation-php 2.0.0: '
+            . 'Method \Apollo\Federation\Types\EntityObjectType::getKeyFields() is deprecated. '
+            . 'Use \Apollo\Federation\Types\EntityObjectType::getKeys() instead of it.',
+            \E_USER_DEPRECATED
+        );
+
+        return array_map(static fn(array $x) => $x['fields'], $this->keys);
+    }
+
+    /**
+     * Gets the fields that serve as the unique key or identifier of the entity.
+     *
+     * @return array<int,array{fields: array<int,string>|array<int|string,string|array<int|string,mixed>>, resolvable: bool }>
+     */
+    public function getKeys(): array
+    {
+        return $this->keys;
     }
 
     /**

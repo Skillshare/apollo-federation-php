@@ -11,9 +11,14 @@ use GraphQL\Type\Definition\Type;
 /**
  * The `@key` directive is used to indicate a combination of fields that can be used to uniquely
  * identify and fetch an object or interface.
+ *
+ * @see https://www.apollographql.com/docs/federation/federated-types/federated-directives/#key
  */
 class KeyDirective extends Directive
 {
+    public const ARGUMENT_FIELDS = 'fields';
+    public const ARGUMENT_RESOLVABLE = 'resolvable';
+
     public function __construct()
     {
         parent::__construct([
@@ -21,8 +26,12 @@ class KeyDirective extends Directive
             'locations' => [DirectiveLocation::OBJECT, DirectiveLocation::IFACE],
             'args' => [
                 new FieldArgument([
-                    'name' => 'fields',
+                    'name' => self::ARGUMENT_FIELDS,
                     'type' => Type::nonNull(Type::string()),
+                ]),
+                new FieldArgument([
+                    'name' => self::ARGUMENT_RESOLVABLE,
+                    'type' => Type::boolean(),
                 ]),
             ],
         ]);
