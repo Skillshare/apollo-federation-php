@@ -4,6 +4,8 @@ directive @inaccessible on FIELD_DEFINITION | INTERFACE | OBJECT | UNION
 
 directive @key(fields: String!) on OBJECT | INTERFACE
 
+directive @link(url: String!, as: String, for: String, import: [link_Import!]) repeatable on SCHEMA
+
 directive @override(from: String!) on FIELD_DEFINITION
 
 directive @requires(fields: String!) on FIELD_DEFINITION
@@ -46,3 +48,5 @@ union _Entity = Episode | Character | Location
 type _Service {
   sdl: String
 }
+
+scalar link_Import

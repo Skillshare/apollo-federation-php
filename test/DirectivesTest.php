@@ -13,7 +13,7 @@ use GraphQL\Utils\SchemaPrinter;
 use PHPUnit\Framework\TestCase;
 use Spatie\Snapshots\MatchesSnapshots;
 
-class DirectivesTest extends TestCase
+final class DirectivesTest extends TestCase
 {
     use MatchesSnapshots;
 
@@ -50,6 +50,17 @@ class DirectivesTest extends TestCase
 
         $this->assertEquals('inaccessible', $config['name']);
         $this->assertEqualsCanonicalizing($expectedLocations, $config['locations']);
+    }
+
+    public function testLinkDirective(): void
+    {
+        $config = Directives::link()->config;
+
+        $expectedLocations = [DirectiveLocation::SCHEMA];
+
+        $this->assertEquals('link', $config['name']);
+        $this->assertEqualsCanonicalizing($expectedLocations, $config['locations']);
+        $this->assertTrue($config['isRepeatable']);
     }
 
     public function testRequiresDirective(): void

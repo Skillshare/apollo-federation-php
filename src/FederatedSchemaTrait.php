@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Apollo\Federation;
 
 use Apollo\Federation\Types\EntityObjectType;
+use Apollo\Federation\Types\SchemaExtensionType;
 use Apollo\Federation\Utils\FederatedSchemaPrinter;
 use GraphQL\Type\Definition\CustomScalarType;
 use GraphQL\Type\Definition\Directive;
@@ -21,6 +22,11 @@ trait FederatedSchemaTrait
      * @var EntityObjectType[]
      */
     protected array $entityTypes = [];
+
+    /**
+     * @var SchemaExtensionType[]
+     */
+    protected array $schemaExtensionTypes = [];
 
     /**
      * @var Directive[]
@@ -42,7 +48,15 @@ trait FederatedSchemaTrait
      */
     public function hasEntityTypes(): bool
     {
-        return !empty($this->getEntityTypes());
+        return !empty($this->entityTypes);
+    }
+
+    /**
+     * @return SchemaExtensionType[]
+     */
+    public function getSchemaExtensionTypes(): array
+    {
+        return $this->schemaExtensionTypes;
     }
 
     /**
@@ -59,22 +73,25 @@ trait FederatedSchemaTrait
     }
 
     /**
-     * @param array<string,mixed> $config
+     * @param array{ query: ObjectType } $config
      *
      * @return array{ query: ObjectType }
      */
     protected function getQueryTypeConfig(array $config): array
     {
         $queryTypeConfig = $config['query']->config;
-        if (\is_callable($queryTypeConfig['fields'])) {
-            $queryTypeConfig['fields'] = $queryTypeConfig['fields']();
-        }
+        $fields = $queryTypeConfig['fields'];
+        $queryTypeConfig['fields'] = function () use ($config, $fields) {
+            if (\is_callable($fields)) {
+                $fields = $fields();
+            }
 
-        $queryTypeConfig['fields'] = array_merge(
-            $queryTypeConfig['fields'],
-            $this->getQueryTypeServiceFieldConfig(),
-            $this->getQueryTypeEntitiesFieldConfig($config)
-        );
+            return array_merge(
+                $fields,
+                $this->getQueryTypeServiceFieldConfig(),
+                $this->getQueryTypeEntitiesFieldConfig($config)
+            );
+        };
 
         return [
             'query' => new ObjectType($queryTypeConfig),
@@ -87,9 +104,9 @@ trait FederatedSchemaTrait
     protected function getQueryTypeServiceFieldConfig(): array
     {
         $serviceType = new ObjectType([
-            'name' => self::RESERVED_TYPE_SERVICE,
+            'name' => FederatedSchema::RESERVED_TYPE_SERVICE,
             'fields' => [
-                self::RESERVED_FIELD_SDL => [
+                FederatedSchema::RESERVED_FIELD_SDL => [
                     'type' => Type::string(),
                     'resolve' => fn (): string => FederatedSchemaPrinter::doPrint($this),
                 ],
@@ -97,7 +114,7 @@ trait FederatedSchemaTrait
         ]);
 
         return [
-            self::RESERVED_FIELD_SERVICE => [
+            FederatedSchema::RESERVED_FIELD_SERVICE => [
                 'type' => Type::nonNull($serviceType),
                 'resolve' => static fn (): array => [],
             ],
@@ -111,25 +128,25 @@ trait FederatedSchemaTrait
      */
     protected function getQueryTypeEntitiesFieldConfig(?array $config): array
     {
-        if (!$this->hasEntityTypes()) {
+        if (!$this->entityTypes) {
             return [];
         }
 
         $entityType = new UnionType([
-            'name' => self::RESERVED_TYPE_ENTITY,
+            'name' => FederatedSchema::RESERVED_TYPE_ENTITY,
             'types' => array_values($this->getEntityTypes()),
         ]);
 
         $anyType = new CustomScalarType([
-            'name' => self::RESERVED_TYPE_ANY,
+            'name' => FederatedSchema::RESERVED_TYPE_ANY,
             'serialize' => static fn ($value) => $value,
         ]);
 
         return [
-            self::RESERVED_FIELD_ENTITIES => [
+            FederatedSchema::RESERVED_FIELD_ENTITIES => [
                 'type' => Type::listOf($entityType),
                 'args' => [
-                    self::RESERVED_FIELD_REPRESENTATIONS => [
+                    FederatedSchema::RESERVED_FIELD_REPRESENTATIONS => [
                         'type' => Type::nonNull(Type::listOf(Type::nonNull($anyType))),
                     ],
                 ],
@@ -147,25 +164,24 @@ trait FederatedSchemaTrait
     protected function resolve($root, $args, $context, $info): array
     {
         return array_map(static function ($ref) use ($context, $info) {
-            Utils::invariant(isset($ref[self::RESERVED_FIELD_TYPE_NAME]), 'Type name must be provided in the reference.');
+            Utils::invariant(isset($ref[FederatedSchema::RESERVED_FIELD_TYPE_NAME]), 'Type name must be provided in the reference.');
 
-            $typeName = $ref[self::RESERVED_FIELD_TYPE_NAME];
+            $typeName = $ref[FederatedSchema::RESERVED_FIELD_TYPE_NAME];
             $type = $info->schema->getType($typeName);
 
             Utils::invariant(
-                $type && $type instanceof EntityObjectType,
-                sprintf(
-                    'The _entities resolver tried to load an entity for type "%s", but no object type of that name was found in the schema',
-                    $type->name
-                )
+                $type instanceof EntityObjectType,
+                'The _entities resolver tried to load an entity for type "%s", but no object type of that name was found in the schema',
+                $type->name
             );
 
+            /** @var EntityObjectType $type */
             if (!$type->hasReferenceResolver()) {
                 return $ref;
             }
 
             return $type->resolveReference($ref, $context, $info);
-        }, $args[self::RESERVED_FIELD_REPRESENTATIONS]);
+        }, $args[FederatedSchema::RESERVED_FIELD_REPRESENTATIONS]);
     }
 
     /**
@@ -185,5 +201,31 @@ trait FederatedSchemaTrait
         }
 
         return $entityTypes;
+    }
+
+    /**
+     * @param array<string,mixed> $config
+     *
+     * @return SchemaExtensionType[]
+     */
+    protected function extractSchemaExtensionTypes(array $config): array
+    {
+        $typeMap = [];
+        $configTypes = $config['types'] ?? [];
+        if (\is_array($configTypes)) {
+            $typeMap = $configTypes;
+        } elseif (\is_callable($configTypes)) {
+            $typeMap = $configTypes();
+        }
+
+        $types = [];
+
+        foreach ($typeMap as $type) {
+            if ($type instanceof SchemaExtensionType) {
+                $types[$type->name] = $type;
+            }
+        }
+
+        return $types;
     }
 }

@@ -7,6 +7,7 @@ namespace Apollo\Federation;
 use Apollo\Federation\Directives\ExternalDirective;
 use Apollo\Federation\Directives\InaccessibleDirective;
 use Apollo\Federation\Directives\KeyDirective;
+use Apollo\Federation\Directives\LinkDirective;
 use Apollo\Federation\Directives\OverrideDirective;
 use Apollo\Federation\Directives\ProvidesDirective;
 use Apollo\Federation\Directives\RequiresDirective;
@@ -23,6 +24,7 @@ class Directives
      *     external: ExternalDirective,
      *     inaccessible: InaccessibleDirective,
      *     key: KeyDirective,
+     *     link: LinkDirective,
      *     override: OverrideDirective,
      *     requires: RequiresDirective,
      *     provides: ProvidesDirective,
@@ -53,6 +55,14 @@ class Directives
     public static function inaccessible(): InaccessibleDirective
     {
         return self::getDirectives()[DirectiveEnum::INACCESSIBLE];
+    }
+
+    /**
+     * Gets the `link` directive.
+     */
+    public static function link(): LinkDirective
+    {
+        return self::getDirectives()[DirectiveEnum::LINK];
     }
 
     /**
@@ -94,6 +104,7 @@ class Directives
      *     external: ExternalDirective,
      *     inaccessible: InaccessibleDirective,
      *     key: KeyDirective,
+     *     link: LinkDirective,
      *     override: OverrideDirective,
      *     requires: RequiresDirective,
      *     provides: ProvidesDirective,
@@ -107,6 +118,7 @@ class Directives
                 DirectiveEnum::EXTERNAL => new ExternalDirective(),
                 DirectiveEnum::INACCESSIBLE => new InaccessibleDirective(),
                 DirectiveEnum::KEY => new KeyDirective(),
+                DirectiveEnum::LINK => new LinkDirective(),
                 DirectiveEnum::OVERRIDE => new OverrideDirective(),
                 DirectiveEnum::REQUIRES => new RequiresDirective(),
                 DirectiveEnum::PROVIDES => new ProvidesDirective(),

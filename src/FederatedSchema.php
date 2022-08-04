@@ -82,6 +82,7 @@ class FederatedSchema extends Schema
     {
         $this->entityTypes = $this->extractEntityTypes($config);
         $this->entityDirectives = Directives::getDirectives();
+        $this->schemaExtensionTypes = $this->extractSchemaExtensionTypes($config);
 
         $config = array_merge($config, $this->getEntityDirectivesConfig($config), $this->getQueryTypeConfig($config));
 

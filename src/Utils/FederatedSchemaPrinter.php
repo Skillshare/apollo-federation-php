@@ -35,6 +35,7 @@ use Apollo\Federation\Enum\DirectiveEnum;
 use Apollo\Federation\FederatedSchema;
 use Apollo\Federation\Types\EntityObjectType;
 use Apollo\Federation\Types\EntityRefObjectType;
+use Apollo\Federation\Types\SchemaExtensionType;
 use GraphQL\Type\Definition\Directive;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\InterfaceType;
@@ -93,7 +94,8 @@ class FederatedSchemaPrinter extends SchemaPrinter
 
         if (($type instanceof ScalarType && FederatedSchema::RESERVED_TYPE_ANY === $type->name)
             || ($type instanceof ObjectType && FederatedSchema::RESERVED_TYPE_SERVICE === $type->name)
-            || ($type instanceof UnionType && FederatedSchema::RESERVED_TYPE_ENTITY === $type->name)) {
+            || ($type instanceof UnionType && FederatedSchema::RESERVED_TYPE_ENTITY === $type->name)
+            || ($type instanceof SchemaExtensionType)) {
             return '';
         }
 
@@ -220,6 +222,40 @@ class FederatedSchemaPrinter extends SchemaPrinter
     }
 
     /**
+     * @param array<string,mixed> $linkConfig
+     */
+    protected static function printLinkDirectiveConfig(array $linkConfig): string
+    {
+        $arguments = [];
+        foreach ($linkConfig as $name => $value) {
+            if (null === $value) {
+                continue;
+            }
+            $arguments[] = sprintf('%s: %s', $name, static::printLinkDirectiveArgumentValue($value, $name));
+        }
+
+        return sprintf('@link(%s)', implode(', ', $arguments));
+    }
+
+    /**
+     * @param string|array<int,string|array<string,string>> $argument
+     */
+    protected static function printLinkDirectiveArgumentValue($argument, string $name): string
+    {
+        if (\is_string($argument)) {
+            return '"' . $argument . '"';
+        }
+        if ('import' !== $name) {
+            throw new \InvalidArgumentException(sprintf('Value of %s must be a string', $name));
+        }
+        if (!\is_array($argument)) {
+            throw new \InvalidArgumentException('Invalid type of "import" argument value');
+        }
+
+        return json_encode($argument, \JSON_THROW_ON_ERROR);
+    }
+
+    /**
      * @param array<string, bool> $options
      */
     protected static function printObject(ObjectType $type, array $options): string
@@ -239,5 +275,28 @@ class FederatedSchemaPrinter extends SchemaPrinter
                 $implementedInterfaces,
                 static::printFields($options, $type)
             );
+    }
+
+    /**
+     * @param FederatedSchema $schema
+     */
+    protected static function printSchemaDefinition(Schema $schema): string
+    {
+        $parts = [parent::printSchemaDefinition($schema)];
+        foreach ($schema->getSchemaExtensionTypes() as $schemaExtensionType) {
+            $parts[] = self::printSchemaExtensionType($schemaExtensionType);
+        }
+
+        return implode("\n\n", array_filter($parts));
+    }
+
+    protected static function printSchemaExtensionType(SchemaExtensionType $schemaExtensionType): string
+    {
+        $links = $schemaExtensionType->config[SchemaExtensionType::FIELD_KEY_LINKS] ?? [];
+
+        return sprintf(
+            'extend schema %s\n',
+            implode("\n", array_map(static fn (array $x): string => static::printLinkDirectiveConfig($x), $links)),
+        );
     }
 }

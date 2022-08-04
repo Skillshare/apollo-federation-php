@@ -9,6 +9,7 @@ class DirectiveEnum
     public const EXTERNAL = 'external';
     public const INACCESSIBLE = 'inaccessible';
     public const KEY = 'key';
+    public const LINK = 'link';
     public const OVERRIDE = 'override';
     public const PROVIDES = 'provides';
     public const REQUIRES = 'requires';
