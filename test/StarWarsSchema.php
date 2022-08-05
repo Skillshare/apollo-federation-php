@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Apollo\Federation\Tests;
 
+use Apollo\Federation\Enum\DirectiveEnum;
 use Apollo\Federation\FederatedSchema;
+use Apollo\Federation\SchemaBuilder;
 use Apollo\Federation\Types\EntityObjectType;
 use Apollo\Federation\Types\EntityRefObjectType;
 use GraphQL\Type\Definition\ObjectType;
@@ -18,8 +20,10 @@ class StarWarsSchema
     public static function getEpisodesSchema(): FederatedSchema
     {
         if (!self::$episodesSchema) {
-            self::$episodesSchema = new FederatedSchema([
+            self::$episodesSchema = (new SchemaBuilder())->build([
                 'query' => self::getQueryType(),
+            ], [
+                'directives' => DirectiveEnum::getAll(),
             ]);
         }
 
@@ -29,7 +33,7 @@ class StarWarsSchema
     public static function getEpisodesSchemaCustomResolver(): FederatedSchema
     {
         if (!self::$overriddenEpisodesSchema) {
-            self::$overriddenEpisodesSchema = new FederatedSchema([
+            self::$overriddenEpisodesSchema = (new SchemaBuilder())->build([
                 'query' => self::getQueryType(),
                 'resolve' => function ($root, $args, $context, $info): array {
                     return array_map(static function (array $ref) use ($info) {
@@ -40,6 +44,8 @@ class StarWarsSchema
                         return $type->resolveReference($ref);
                     }, $args[FederatedSchema::RESERVED_FIELD_REPRESENTATIONS]);
                 },
+            ], [
+                'directives' => DirectiveEnum::getAll(),
             ]);
         }
 

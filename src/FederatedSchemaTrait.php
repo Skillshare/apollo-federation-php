@@ -29,11 +29,6 @@ trait FederatedSchemaTrait
     protected array $schemaExtensionTypes = [];
 
     /**
-     * @var Directive[]
-     */
-    protected array $entityDirectives = [];
-
-    /**
      * Returns all the resolved entity types in the schema.
      *
      * @return EntityObjectType[]
@@ -57,19 +52,6 @@ trait FederatedSchemaTrait
     public function getSchemaExtensionTypes(): array
     {
         return $this->schemaExtensionTypes;
-    }
-
-    /**
-     * @param array<string,mixed> $config
-     *
-     * @return array<string,mixed>
-     */
-    protected function getEntityDirectivesConfig(array $config): array
-    {
-        $directives = $config['directives'] ?? [];
-        $config['directives'] = array_merge($directives, $this->entityDirectives);
-
-        return $config;
     }
 
     /**
