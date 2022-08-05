@@ -169,6 +169,24 @@ trait FederatedSchemaTrait
     /**
      * @param array<string,mixed> $config
      *
+     * @return array<Type>
+     */
+    protected function extractExtraTypes(array $config): array
+    {
+        $typeMap = [];
+        $configTypes = $config['types'] ?? [];
+        if (\is_array($configTypes)) {
+            $typeMap = $configTypes;
+        } elseif (\is_callable($configTypes)) {
+            $typeMap = $configTypes();
+        }
+
+        return $typeMap;
+    }
+
+    /**
+     * @param array<string,mixed> $config
+     *
      * @return EntityObjectType[]
      */
     protected function extractEntityTypes(array $config): array
@@ -192,17 +210,8 @@ trait FederatedSchemaTrait
      */
     protected function extractSchemaExtensionTypes(array $config): array
     {
-        $typeMap = [];
-        $configTypes = $config['types'] ?? [];
-        if (\is_array($configTypes)) {
-            $typeMap = $configTypes;
-        } elseif (\is_callable($configTypes)) {
-            $typeMap = $configTypes();
-        }
-
         $types = [];
-
-        foreach ($typeMap as $type) {
+        foreach ($this->extractExtraTypes($config) as $type) {
             if ($type instanceof SchemaExtensionType) {
                 $types[$type->name] = $type;
             }
