@@ -1,36 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<phpunit
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
-        bootstrap="test/Bootstrap.php"
->
-    <php>
-        <ini name="error_reporting" value="E_ALL"/>
-    </php>
-
-    <testsuites>
-        <testsuite name="skillshare/apollo-federation-php Test Suite">
-            <directory>./test/</directory>
-        </testsuite>
-    </testsuites>
-
-    <groups>
-        <exclude>
-            <group>ReactPromise</group>
-        </exclude>
-    </groups>
-
-    <filter>
-        <whitelist>
-            <directory suffix=".php">./src</directory>
-            <exclude>
-                <file>./src/Utils/FederatedSchemaPrinter.php</file>
-            </exclude>
-        </whitelist>
-    </filter>
-
-    <logging>
-    <log type="coverage-text" target="php://stdout"/>
-    <log type="coverage-clover" target="cov.xml"/>
-  </logging>  
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd" bootstrap="test/Bootstrap.php">
+  <coverage>
+    <include>
+      <directory suffix=".php">./src</directory>
+    </include>
+    <exclude>
+      <file>./src/Utils/FederatedSchemaPrinter.php</file>
+    </exclude>
+    <report>
+      <clover outputFile="cov.xml"/>
+      <text outputFile="php://stdout"/>
+    </report>
+  </coverage>
+  <php>
+    <ini name="error_reporting" value="E_ALL"/>
+  </php>
+  <testsuites>
+    <testsuite name="skillshare/apollo-federation-php Test Suite">
+      <directory>./test/</directory>
+    </testsuite>
+  </testsuites>
+  <groups>
+    <exclude>
+      <group>ReactPromise</group>
+    </exclude>
+  </groups>
+  <logging/>
 </phpunit>
