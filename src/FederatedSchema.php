@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Apollo\Federation;
 
-use GraphQL\GraphQL;
-use GraphQL\Type\Definition\Directive;
 use GraphQL\Type\Schema;
 use GraphQL\Type\Definition\CustomScalarType;
+use GraphQL\Type\Definition\Directive;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\UnionType;
 use GraphQL\Type\Definition\Type;
