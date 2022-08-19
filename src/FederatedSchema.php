@@ -6,6 +6,7 @@ namespace Apollo\Federation;
 
 use GraphQL\Type\Schema;
 use GraphQL\Type\Definition\CustomScalarType;
+use GraphQL\Type\Definition\Directive;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\UnionType;
 use GraphQL\Type\Definition\Type;
@@ -63,7 +64,7 @@ class FederatedSchema extends Schema
     public function __construct($config)
     {
         $this->entityTypes = $this->extractEntityTypes($config);
-        $this->entityDirectives = Directives::getDirectives();
+        $this->entityDirectives = array_merge(Directives::getDirectives(), Directive::getInternalDirectives());
 
         $config = array_merge($config, $this->getEntityDirectivesConfig($config), $this->getQueryTypeConfig($config));
 
