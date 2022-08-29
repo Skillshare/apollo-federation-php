@@ -4,17 +4,7 @@ declare(strict_types=1);
 
 namespace Apollo\Federation;
 
-use Apollo\Federation\Types\EntityObjectType;
-use Apollo\Federation\Utils\FederatedSchemaPrinter;
-use GraphQL\Type\Definition\CustomScalarType;
-use GraphQL\Type\Definition\Directive;
-use GraphQL\Type\Definition\ListOfType;
-use GraphQL\Type\Definition\ObjectType;
-use GraphQL\Type\Definition\Type;
-use GraphQL\Type\Definition\UnionType;
 use GraphQL\Type\Schema;
-use GraphQL\Utils\TypeInfo;
-use GraphQL\Utils\Utils;
 
 /**
  * A federated GraphQL schema definition see related docs {@see https://www.apollographql.com/docs/apollo-server/federation/introduction }.
