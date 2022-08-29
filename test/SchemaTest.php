@@ -57,6 +57,12 @@ class SchemaTest extends TestCase
         $this->assertArrayHasKey('external', $directives);
         $this->assertArrayHasKey('provides', $directives);
         $this->assertArrayHasKey('requires', $directives);
+
+        // These are the default directives, which should not be replaced
+        // https://www.apollographql.com/docs/apollo-server/schema/directives#default-directives
+        $this->assertArrayHasKey('include', $directives);
+        $this->assertArrayHasKey('skip', $directives);
+        $this->assertArrayHasKey('deprecated', $directives);
     }
 
     public function testServiceSdl(): void
