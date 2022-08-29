@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Apollo\Federation;
 
+use GraphQL\Type\Definition\Directive;
+
 class SchemaBuilder
 {
     /**
@@ -27,6 +29,9 @@ class SchemaBuilder
     protected function getEntityDirectivesConfig(array $schemaConfig, array $builderConfig): array
     {
         $directives = array_intersect_key(Directives::getDirectives(), array_flip($builderConfig['directives']));
+        if (array_intersect_key($directives, Directive::getInternalDirectives())) {
+            throw new \LogicException('Some Apollo directives override internals.');
+        }
         $schemaConfig['directives'] = array_merge($schemaConfig['directives'] ?? [], $directives);
 
         return $schemaConfig;

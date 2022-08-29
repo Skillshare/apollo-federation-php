@@ -9,6 +9,7 @@ use Apollo\Federation\FederatedSchema;
 use Apollo\Federation\SchemaBuilder;
 use Apollo\Federation\Types\EntityObjectType;
 use Apollo\Federation\Types\EntityRefObjectType;
+use GraphQL\Type\Definition\Directive;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 
@@ -21,6 +22,7 @@ class StarWarsSchema
     {
         if (!self::$episodesSchema) {
             self::$episodesSchema = (new SchemaBuilder())->build([
+                'directives' => Directive::getInternalDirectives(),
                 'query' => self::getQueryType(),
             ], [
                 'directives' => DirectiveEnum::getAll(),
@@ -34,6 +36,7 @@ class StarWarsSchema
     {
         if (!self::$overriddenEpisodesSchema) {
             self::$overriddenEpisodesSchema = (new SchemaBuilder())->build([
+                'directives' => Directive::getInternalDirectives(),
                 'query' => self::getQueryType(),
                 'resolve' => function ($root, $args, $context, $info): array {
                     return array_map(static function (array $ref) use ($info) {
