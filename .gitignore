@@ -3,3 +3,5 @@ composer.phar
 /node_modules/
 *.cache
 cov.xml
+.idea
+.vscode
