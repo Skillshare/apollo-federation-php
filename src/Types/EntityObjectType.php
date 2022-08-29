@@ -85,6 +85,8 @@ class EntityObjectType extends ObjectType
      * @deprecated Use {@see getKeys()}
      *
      * @return array<int,string>|array<int|string,string|array<int|string,mixed>>
+     *
+     * @codeCoverageIgnore
      */
     public function getKeyFields(): array
     {

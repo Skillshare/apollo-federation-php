@@ -13,6 +13,7 @@ use GraphQL\Utils\Utils;
  * resolve the entity during query execution.
  *
  * @see https://www.apollographql.com/docs/federation/v1/entities#referencing-entities
+ * @see https://www.apollographql.com/docs/federation/entities#referencing-an-entity-without-contributing-fields
  */
 class EntityRefObjectType extends EntityObjectType
 {
