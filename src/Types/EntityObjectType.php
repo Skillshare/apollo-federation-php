@@ -15,7 +15,7 @@ use GraphQL\Utils\Utils;
  * of the type, similar to the function of a primary key in a SQL table
  * see related docs {@see https://www.apollographql.com/docs/apollo-server/federation/core-concepts/#entities-and-keys }.
  *
- * The `keyFields` property is required in the configuration, indicating the fields that
+ * The `keys` property is required in the configuration, indicating the fields that
  * serve as the unique keys or identifiers of the entity.
  *
  * Sample usage:
