@@ -17,11 +17,24 @@ final class EntityTest extends TestCase
         new EntityObjectType($config);
     }
 
+    /**
+     * @dataProvider getDataForTestMethodGetKeyFields
+     *
+     * @param string[] $expected
+     * @param array<string,mixed> $config
+     */
+    public function testMethodGetKeyFields(array $expected, array $config): void
+    {
+        self::assertSame($expected, (new EntityObjectType($config))->getKeyFields());
+    }
+
     public function testMethodGetKeyFieldsTriggersDeprecation(): void
     {
         $isCaught = false;
-        set_error_handler(static function (int $errno, string $errstr, string $errfile = '', int $errline = 0, array $errcontext = []) use (&$isCaught): bool {
+        set_error_handler(static function (int $n, string $s, string $f = '', int $l = 0, array $c = [])
+        use (&$isCaught): bool {
             $isCaught = true;
+
             return true;
         });
         $config = ['name' => '*', 'keys' => [['fields' => ['id']]]];
@@ -30,5 +43,37 @@ final class EntityTest extends TestCase
         self::assertTrue($isCaught, 'It does trigger deprecation error. But it should!');
 
         restore_error_handler();
+    }
+
+    public function getDataForTestMethodGetKeyFields(): \Generator
+    {
+        yield [
+            ['id'],
+            ['name' => '*', 'keyFields' => ['id']],
+        ];
+        yield [
+            ['id', 'email'],
+            ['name' => '*', 'keyFields' => ['id', 'email']],
+        ];
+        yield [
+            ['id'],
+            ['name' => '*', 'keys' => [['fields' => 'id']]],
+        ];
+        yield [
+            ['id'],
+            ['name' => '*', 'keys' => [['fields' => ['id']]]],
+        ];
+        yield [
+            ['id', 'email'],
+            ['name' => '*', 'keys' => [['fields' => ['id', 'email']]]],
+        ];
+        yield [
+            ['id', 'email'],
+            ['name' => '*', 'keys' => [['fields' => ['id']], ['fields' => ['email']]]],
+        ];
+        yield [
+            ['id', 'email'],
+            ['name' => '*', 'keys' => [['fields' => 'id'], ['fields' => 'email']]],
+        ];
     }
 }

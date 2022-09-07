@@ -97,7 +97,7 @@ class EntityObjectType extends ObjectType
             \E_USER_DEPRECATED
         );
 
-        return array_map(static fn(array $x) => $x['fields'], $this->keys);
+        return array_merge(...array_map(static fn(array $x): array => (array) $x['fields'], $this->keys));
     }
 
     /**
