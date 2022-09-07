@@ -40,7 +40,7 @@ final class EntityTest extends TestCase
         $config = ['name' => '*', 'keys' => [['fields' => ['id']]]];
         (new EntityObjectType($config))->getKeyFields();
 
-        self::assertTrue($isCaught, 'It does trigger deprecation error. But it should!');
+        self::assertTrue($isCaught, 'It does not trigger deprecation error. But it should!');
 
         restore_error_handler();
     }
