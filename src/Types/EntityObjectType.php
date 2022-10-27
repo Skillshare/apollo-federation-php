@@ -137,7 +137,7 @@ class EntityObjectType extends ObjectType
 
     private function validateReferenceResolver(): void
     {
-        Utils::invariant(isset($this->referenceResolver), 'No reference resolver was set in the configuration.');
+        Utils::invariant(\is_callable($this->referenceResolver), 'Invalid reference resolver configuration.');
     }
 
     /**
