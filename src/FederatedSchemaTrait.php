@@ -8,7 +8,6 @@ use Apollo\Federation\Types\EntityObjectType;
 use Apollo\Federation\Types\SchemaExtensionType;
 use Apollo\Federation\Utils\FederatedSchemaPrinter;
 use GraphQL\Type\Definition\CustomScalarType;
-use GraphQL\Type\Definition\Directive;
 use GraphQL\Type\Definition\ListOfType;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
