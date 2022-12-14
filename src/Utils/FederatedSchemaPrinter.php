@@ -1,7 +1,6 @@
 <?php
 
 /**
- * 
  * This source file includes modified code from webonyx/graphql-php.
  *
  * Copyright (c) 2015-present, Webonyx, LLC.
@@ -32,10 +31,16 @@ declare(strict_types=1);
 
 namespace Apollo\Federation\Utils;
 
+use Apollo\Federation\Types\EntityObjectType;
+use Apollo\Federation\Types\EntityRefObjectType;
 use GraphQL\Error\Error;
 use GraphQL\Language\Printer;
 use GraphQL\Type\Definition\Directive;
 use GraphQL\Type\Definition\EnumType;
+use GraphQL\Type\Definition\EnumValueDefinition;
+use GraphQL\Type\Definition\FieldArgument;
+use GraphQL\Type\Definition\FieldDefinition;
+use GraphQL\Type\Definition\InputObjectField;
 use GraphQL\Type\Definition\InputObjectType;
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\ObjectType;
@@ -47,9 +52,6 @@ use GraphQL\Type\Schema;
 use GraphQL\Utils\AST;
 use GraphQL\Utils\Utils;
 
-use Apollo\Federation\Types\EntityObjectType;
-use Apollo\Federation\Types\EntityRefObjectType;
-
 use function array_filter;
 use function array_keys;
 use function array_map;
@@ -58,6 +60,7 @@ use function array_values;
 use function count;
 use function explode;
 use function implode;
+use function in_array;
 use function ksort;
 use function mb_strlen;
 use function preg_match_all;
@@ -68,6 +71,8 @@ use function substr;
 
 /**
  * Given an instance of Schema, prints it in GraphQL type language.
+ *
+ * @psalm-type OptionsType = array{commentDescriptions?: bool}
  */
 class FederatedSchemaPrinter
 {
@@ -77,37 +82,39 @@ class FederatedSchemaPrinter
      *    - commentDescriptions:
      *        Provide true to use preceding comments as the description.
      *
-     * @param bool[] $options
-     *
-     * @api
+     * @param OptionsType $options
      */
     public static function doPrint(Schema $schema, array $options = []): string
     {
         return self::printFilteredSchema(
             $schema,
-            static function ($type) {
-                return !Directive::isSpecifiedDirective($type) && !self::isFederatedDirective($type);
-            },
-            static function ($type) {
-                return !Type::isBuiltInType($type);
-            },
-            $options
+            static fn (Directive $type): bool => !Directive::isSpecifiedDirective($type)
+                && !self::isFederatedDirective($type),
+            static fn (Type $type): bool => !Type::isBuiltInType($type),
+            $options,
         );
     }
 
-    public static function isFederatedDirective($type): bool
+    public static function isFederatedDirective(Directive $type): bool
     {
         return in_array($type->name, ['key', 'provides', 'requires', 'external']);
     }
 
     /**
-     * @param bool[] $options
+     * @param callable(Directive):bool $directiveFilter
+     * @param callable(Type):bool | null $typeFilter
+     * @param OptionsType $options
      */
-    private static function printFilteredSchema(Schema $schema, $directiveFilter, $typeFilter, $options): string
-    {
-        $directives = array_filter($schema->getDirectives(), static function ($directive) use ($directiveFilter) {
-            return $directiveFilter($directive);
-        });
+    private static function printFilteredSchema(
+        Schema $schema,
+        callable $directiveFilter,
+        ?callable $typeFilter,
+        array $options
+    ): string {
+        $directives = array_filter(
+            $schema->getDirectives(),
+            static fn (Directive $directive): bool => $directiveFilter($directive),
+        );
 
         $types = $schema->getTypeMap();
         ksort($types);
@@ -119,19 +126,24 @@ class FederatedSchemaPrinter
                 "\n\n",
                 array_filter(
                     array_merge(
-                        array_map(static function ($directive) use ($options) {
-                            return self::printDirective($directive, $options);
-                        }, $directives),
-                        array_map(static function ($type) use ($options) {
-                            return self::printType($type, $options);
-                        }, $types)
-                    )
-                )
-            )
+                        array_map(
+                            static fn (Directive $directive): string => self::printDirective($directive, $options),
+                            $directives,
+                        ),
+                        array_map(
+                            static fn (Type $type): string => self::printType($type, $options),
+                            $types,
+                        ),
+                    ),
+                ),
+            ),
         );
     }
 
-    private static function printDirective($directive, $options): string
+    /**
+     * @param OptionsType $options
+     */
+    private static function printDirective(Directive $directive, array $options): string
     {
         return self::printDescription($options, $directive) .
             'directive @' .
@@ -141,8 +153,16 @@ class FederatedSchemaPrinter
             implode(' | ', $directive->locations);
     }
 
-    private static function printDescription($options, $def, $indentation = '', $firstInBlock = true): string
-    {
+    /**
+     * @param OptionsType $options
+     * @param Directive | FieldArgument | InputObjectField $def
+     */
+    private static function printDescription(
+        array $options,
+        object $def,
+        string $indentation = '',
+        bool $firstInBlock = true
+    ): string {
         if (!$def->description) {
             return '';
         }
@@ -222,8 +242,14 @@ class FederatedSchemaPrinter
         return array_map('trim', $parts);
     }
 
-    private static function printDescriptionWithComments($lines, $indentation, $firstInBlock): string
-    {
+    /**
+     * @param string[] $lines
+     */
+    private static function printDescriptionWithComments(
+        array $lines,
+        string $indentation,
+        bool $firstInBlock
+    ): string {
         $description = $indentation && !$firstInBlock ? "\n" : '';
 
         foreach ($lines as $line) {
@@ -237,12 +263,16 @@ class FederatedSchemaPrinter
         return $description;
     }
 
-    private static function escapeQuote($line): string
+    private static function escapeQuote(string $line): string
     {
         return str_replace('"""', '\\"""', $line);
     }
 
-    private static function printArgs($options, $args, $indentation = ''): string
+    /**
+     * @param OptionsType $options
+     * @param FieldArgument[] $args
+     */
+    private static function printArgs(array $options, array $args, string $indentation = ''): string
     {
         if (!$args) {
             return '';
@@ -250,9 +280,10 @@ class FederatedSchemaPrinter
 
         // If every arg does not have a description, print them on one line.
         if (
-            Utils::every($args, static function ($arg) {
-                return empty($arg->description);
-            })
+            Utils::every(
+                $args,
+                static fn (FieldArgument $arg): bool => !isset($arg->description) || $arg->description === '',
+            )
         ) {
             return '(' . implode(', ', array_map('self::printInputValue', $args)) . ')';
         }
@@ -262,21 +293,24 @@ class FederatedSchemaPrinter
             implode(
                 "\n",
                 array_map(
-                    static function ($arg, $i) use ($indentation, $options) {
-                        return self::printDescription($options, $arg, '  ' . $indentation, !$i) .
-                            '  ' .
-                            $indentation .
-                            self::printInputValue($arg);
-                    },
+                    static fn (FieldArgument $arg, int $i) => self::printDescription(
+                        $options,
+                        $arg,
+                        '  ' . $indentation,
+                        !$i,
+                    ) . '  ' . $indentation . self::printInputValue($arg),
                     $args,
-                    array_keys($args)
-                )
+                    array_keys($args),
+                ),
             ),
-            $indentation
+            $indentation,
         );
     }
 
-    private static function printInputValue($arg): string
+    /**
+     * @param InputObjectField | FieldArgument $arg
+     */
+    private static function printInputValue(object $arg): string
     {
         $argDecl = $arg->name . ': ' . (string) $arg->getType();
 
@@ -288,7 +322,7 @@ class FederatedSchemaPrinter
     }
 
     /**
-     * @param bool[] $options
+     * @param OptionsType $options
      */
     public static function printType(Type $type, array $options = []): string
     {
@@ -300,7 +334,7 @@ class FederatedSchemaPrinter
             }
         }
 
-        if ($type instanceof EntityObjectType || $type instanceof EntityRefObjectType) {
+        if ($type instanceof EntityObjectType) {
             return self::printEntityObject($type, $options);
         }
 
@@ -336,7 +370,7 @@ class FederatedSchemaPrinter
     }
 
     /**
-     * @param bool[] $options
+     * @param OptionsType $options
      */
     private static function printScalar(ScalarType $type, array $options): string
     {
@@ -344,22 +378,20 @@ class FederatedSchemaPrinter
     }
 
     /**
-     * @param bool[] $options
+     * @param OptionsType $options
      */
     private static function printObject(ObjectType $type, array $options): string
     {
-        if (empty($type->getFields())) {
+        if ($type->getFields() === []) {
             return '';
         }
 
         $interfaces = $type->getInterfaces();
-        $implementedInterfaces = !empty($interfaces)
+        $implementedInterfaces = $interfaces !== []
             ? ' implements ' .
                 implode(
                     ' & ',
-                    array_map(static function ($i) {
-                        return $i->name;
-                    }, $interfaces)
+                    array_map(static fn (InterfaceType $i): string => $i->name, $interfaces),
                 )
             : '';
 
@@ -371,23 +403,21 @@ class FederatedSchemaPrinter
                 $queryExtends,
                 $type->name,
                 $implementedInterfaces,
-                self::printFields($options, $type)
+                self::printFields($options, $type),
             );
     }
 
     /**
-     * @param bool[] $options
+     * @param OptionsType $options
      */
     private static function printEntityObject(EntityObjectType $type, array $options): string
     {
         $interfaces = $type->getInterfaces();
-        $implementedInterfaces = !empty($interfaces)
+        $implementedInterfaces = $interfaces !== []
             ? ' implements ' .
                 implode(
                     ' & ',
-                    array_map(static function ($i) {
-                        return $i->name;
-                    }, $interfaces)
+                    array_map(static fn (InterfaceType $i): string => $i->name, $interfaces),
                 )
             : '';
 
@@ -407,28 +437,29 @@ class FederatedSchemaPrinter
                 $type->name,
                 $implementedInterfaces,
                 $keyDirective,
-                self::printFields($options, $type)
+                self::printFields($options, $type),
             );
     }
 
     /**
-     * @param bool[] $options
+     * @param OptionsType $options
+     * @param EntityObjectType | InterfaceType | ObjectType $type
      */
-    private static function printFields($options, $type): string
+    private static function printFields(array $options, object $type): string
     {
         $fields = array_values($type->getFields());
 
         if ($type->name === 'Query') {
-            $fields = array_filter($fields, function ($field) {
-                return $field->name !== '_service' && $field->name !== '_entities';
-            });
+            $fields = array_filter(
+                $fields,
+                fn (FieldDefinition $field): bool => $field->name !== '_service' && $field->name !== '_entities',
+            );
         }
 
         return implode(
             "\n",
             array_map(
-                static function ($f, $i) use ($options) {
-                    return self::printDescription($options, $f, '  ', !$i) .
+                static fn (FieldDefinition $f, int $i) => self::printDescription($options, $f, '  ', !$i) .
                         '  ' .
                         $f->name .
                         self::printArgs($options, $f->args, '  ') .
@@ -436,18 +467,20 @@ class FederatedSchemaPrinter
                         (string) $f->getType() .
                         self::printDeprecated($f) .
                         ' ' .
-                        self::printFieldFederatedDirectives($f);
-                },
+                        self::printFieldFederatedDirectives($f),
                 $fields,
-                array_keys($fields)
-            )
+                array_keys($fields),
+            ),
         );
     }
 
-    private static function printDeprecated($fieldOrEnumVal): string
+    /**
+     * @param EnumValueDefinition | FieldDefinition $fieldOrEnumVal
+     */
+    private static function printDeprecated(object $fieldOrEnumVal): string
     {
-        $reason = $fieldOrEnumVal->deprecationReason;
-        if (empty($reason)) {
+        $reason = $fieldOrEnumVal->deprecationReason ?? null;
+        if ($reason === null) {
             return '';
         }
         if ($reason === '' || $reason === Directive::DEFAULT_DEPRECATION_REASON) {
@@ -457,27 +490,27 @@ class FederatedSchemaPrinter
         return ' @deprecated(reason: ' . Printer::doPrint(AST::astFromValue($reason, Type::string())) . ')';
     }
 
-    private static function printFieldFederatedDirectives($field)
+    private static function printFieldFederatedDirectives(FieldDefinition $field): string
     {
         $directives = [];
 
         if (isset($field->config['isExternal']) && $field->config['isExternal'] === true) {
-            array_push($directives, '@external');
+            $directives[] = '@external';
         }
 
         if (isset($field->config['provides'])) {
-            array_push($directives, sprintf('@provides(fields: "%s")', $field->config['provides']));
+            $directives[] = sprintf('@provides(fields: "%s")', $field->config['provides']);
         }
 
         if (isset($field->config['requires'])) {
-            array_push($directives, sprintf('@requires(fields: "%s")', $field->config['requires']));
+            $directives[] = sprintf('@requires(fields: "%s")', $field->config['requires']);
         }
 
         return implode(' ', $directives);
     }
 
     /**
-     * @param bool[] $options
+     * @param OptionsType $options
      */
     private static function printInterface(InterfaceType $type, array $options): string
     {
@@ -486,7 +519,7 @@ class FederatedSchemaPrinter
     }
 
     /**
-     * @param bool[] $options
+     * @param OptionsType $options
      */
     private static function printUnion(UnionType $type, array $options): string
     {
@@ -495,7 +528,7 @@ class FederatedSchemaPrinter
     }
 
     /**
-     * @param bool[] $options
+     * @param OptionsType $options
      */
     private static function printEnum(EnumType $type, array $options): string
     {
@@ -504,27 +537,26 @@ class FederatedSchemaPrinter
     }
 
     /**
-     * @param bool[] $options
+     * @param EnumValueDefinition[] $values
+     * @param OptionsType $options
      */
-    private static function printEnumValues($values, $options): string
+    private static function printEnumValues(array $values, array $options): string
     {
         return implode(
             "\n",
             array_map(
-                static function ($value, $i) use ($options) {
-                    return self::printDescription($options, $value, '  ', !$i) .
+                static fn (EnumValueDefinition $value, int $i) => self::printDescription($options, $value, '  ', !$i) .
                         '  ' .
                         $value->name .
-                        self::printDeprecated($value);
-                },
+                        self::printDeprecated($value),
                 $values,
-                array_keys($values)
-            )
+                array_keys($values),
+            ),
         );
     }
 
     /**
-     * @param bool[] $options
+     * @param OptionsType $options
      */
     private static function printInputObject(InputObjectType $type, array $options): string
     {
@@ -537,20 +569,18 @@ class FederatedSchemaPrinter
                 implode(
                     "\n",
                     array_map(
-                        static function ($f, $i) use ($options) {
-                            return self::printDescription($options, $f, '  ', !$i) . '  ' . self::printInputValue($f);
-                        },
+                        static fn (InputObjectField $f, int $i) => self::printDescription($options, $f, '  ', !$i)
+                            . '  '
+                            . self::printInputValue($f),
                         $fields,
-                        array_keys($fields)
-                    )
-                )
+                        array_keys($fields),
+                    ),
+                ),
             );
     }
 
     /**
-     * @param bool[] $options
-     *
-     * @api
+     * @param OptionsType $options
      */
     public static function printIntrospectionSchema(Schema $schema, array $options = []): string
     {
@@ -558,7 +588,7 @@ class FederatedSchemaPrinter
             $schema,
             [Directive::class, 'isSpecifiedDirective'],
             [Introspection::class, 'isIntrospectionType'],
-            $options
+            $options,
         );
     }
 }

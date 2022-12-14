@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Apollo\Federation\Types;
 
-use GraphQL\Utils\Utils;
 use GraphQL\Type\Definition\ObjectType;
+use GraphQL\Utils\Utils;
 
-use array_key_exists;
+use function is_callable;
 
 /**
  * An entity is a type that can be referenced by another service. Entities create
@@ -39,12 +39,11 @@ use array_key_exists;
  *         ]
  *       ]
  *     ]);
- *
  */
 class EntityObjectType extends ObjectType
 {
-    /** @var array */
-    private $keyFields;
+    /** @var string[] */
+    private array $keyFields;
 
     /** @var callable */
     public $referenceResolver;
@@ -67,7 +66,7 @@ class EntityObjectType extends ObjectType
     /**
      * Gets the fields that serve as the unique key or identifier of the entity.
      *
-     * @return array
+     * @return string[]
      */
     public function getKeyFields(): array
     {
@@ -76,8 +75,6 @@ class EntityObjectType extends ObjectType
 
     /**
      * Gets whether this entity has a resolver set
-     *
-     * @return bool
      */
     public function hasReferenceResolver(): bool
     {
@@ -90,28 +87,34 @@ class EntityObjectType extends ObjectType
      * @param mixed $ref
      * @param mixed $context
      * @param mixed $info
+     *
+     * @return mixed
      */
     public function resolveReference($ref, $context = null, $info = null)
     {
         $this->validateReferenceResolver();
         $this->validateReferenceKeys($ref);
 
-        $entity = ($this->referenceResolver)($ref, $context, $info);
-        
-        return $entity;
+        return ($this->referenceResolver)($ref, $context, $info);
     }
 
-    private function validateReferenceResolver()
+    private function validateReferenceResolver(): void
     {
         Utils::invariant(isset($this->referenceResolver), 'No reference resolver was set in the configuration.');
     }
 
-    private function validateReferenceKeys($ref)
+    /**
+     * @param mixed[] $ref
+     */
+    private function validateReferenceKeys(array $ref): void
     {
         Utils::invariant(isset($ref['__typename']), 'Type name must be provided in the reference.');
     }
 
-    public static function validateResolveReference(array $config)
+    /**
+     * @param mixed[] $config
+     */
+    public static function validateResolveReference(array $config): void
     {
         Utils::invariant(is_callable($config['__resolveReference']), 'Reference resolver has to be callable.');
     }

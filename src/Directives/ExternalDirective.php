@@ -1,11 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Apollo\Federation\Directives;
 
-use GraphQL\Type\Definition\Type;
-use GraphQL\Type\Definition\Directive;
-use GraphQL\Type\Definition\FieldArgument;
 use GraphQL\Language\DirectiveLocation;
+use GraphQL\Type\Definition\Directive;
 
 /**
  * The `@external` directive is used to mark a field as owned by another service. This
@@ -18,7 +18,7 @@ class ExternalDirective extends Directive
     {
         parent::__construct([
             'name' => 'external',
-            'locations' => [DirectiveLocation::FIELD_DEFINITION]
+            'locations' => [DirectiveLocation::FIELD_DEFINITION],
         ]);
     }
 }

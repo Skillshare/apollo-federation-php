@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Apollo\Federation\Directives;
 
-use GraphQL\Type\Definition\Type;
+use GraphQL\Language\DirectiveLocation;
 use GraphQL\Type\Definition\Directive;
 use GraphQL\Type\Definition\FieldArgument;
-use GraphQL\Language\DirectiveLocation;
+use GraphQL\Type\Definition\Type;
 
 /**
  * The `@provides` directive is used to annotate the expected returned fieldset from a field
@@ -21,9 +23,9 @@ class ProvidesDirective extends Directive
             'args' => [
                 new FieldArgument([
                     'name' => 'fields',
-                    'type' => Type::nonNull(Type::string())
-                ])
-            ]
+                    'type' => Type::nonNull(Type::string()),
+                ]),
+            ],
         ]);
     }
 }

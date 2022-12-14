@@ -4,14 +4,11 @@ declare(strict_types=1);
 
 namespace Apollo\Federation\Tests;
 
-use PHPUnit\Framework\TestCase;
-use Spatie\Snapshots\MatchesSnapshots;
-
-use GraphQL\Type\Definition\Type;
-use GraphQL\Error\InvariantViolation;
-
 use Apollo\Federation\Types\EntityObjectType;
 use Apollo\Federation\Types\EntityRefObjectType;
+use GraphQL\Type\Definition\Type;
+use PHPUnit\Framework\TestCase;
+use Spatie\Snapshots\MatchesSnapshots;
 
 class EntitiesTest extends TestCase
 {
@@ -28,8 +25,8 @@ class EntitiesTest extends TestCase
                 'id' => ['type' => Type::int()],
                 'email' => ['type' => Type::string()],
                 'firstName' => ['type' => Type::string()],
-                'lastName' => ['type' => Type::string()]
-            ]
+                'lastName' => ['type' => Type::string()],
+            ],
         ]);
 
         $this->assertEqualsCanonicalizing($userType->getKeyFields(), $userTypeKeyFields);
@@ -43,14 +40,12 @@ class EntitiesTest extends TestCase
         $userType = new EntityObjectType([
             'name' => 'User',
             'keyFields' => $userTypeKeyFields,
-            'fields' => function () {
-                return [
-                    'id' => ['type' => Type::int()],
-                    'email' => ['type' => Type::string()],
-                    'firstName' => ['type' => Type::string()],
-                    'lastName' => ['type' => Type::string()]
-                ];
-            }
+            'fields' => fn () => [
+                'id' => ['type' => Type::int()],
+                'email' => ['type' => Type::string()],
+                'firstName' => ['type' => Type::string()],
+                'lastName' => ['type' => Type::string()],
+            ],
         ]);
 
         $this->assertEqualsCanonicalizing($userType->getKeyFields(), $userTypeKeyFields);
@@ -64,7 +59,7 @@ class EntitiesTest extends TestCase
             'email' => 'luke@skywalker.com',
             'firstName' => 'Luke',
             'lastName' => 'Skywalker',
-            '__typename' => 'User'
+            '__typename' => 'User',
         ];
 
         $userType = new EntityObjectType([
@@ -74,11 +69,9 @@ class EntitiesTest extends TestCase
                 'id' => ['type' => Type::int()],
                 'email' => ['type' => Type::string()],
                 'firstName' => ['type' => Type::string()],
-                'lastName' => ['type' => Type::string()]
+                'lastName' => ['type' => Type::string()],
             ],
-            '__resolveReference' => function () use ($expectedRef) {
-                return $expectedRef;
-            }
+            '__resolveReference' => fn () => $expectedRef,
         ]);
 
         $actualRef = $userType->resolveReference(['id' => 1, 'email' => 'luke@skywalker.com', '__typename' => 'User']);
@@ -95,8 +88,8 @@ class EntitiesTest extends TestCase
             'keyFields' => $userTypeKeyFields,
             'fields' => [
                 'id' => ['type' => Type::int()],
-                'email' => ['type' => Type::string()]
-            ]
+                'email' => ['type' => Type::string()],
+            ],
         ]);
 
         $this->assertEqualsCanonicalizing($userType->getKeyFields(), $userTypeKeyFields);
