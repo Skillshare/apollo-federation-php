@@ -13,7 +13,7 @@ namespace Apollo\Federation\Types;
 class EntityRefObjectType extends EntityObjectType
 {
     /**
-     * @param mixed[] $config
+     * @param array{keyFields?: string[], __resolveReference?: callable} $config
      */
     public function __construct(array $config)
     {

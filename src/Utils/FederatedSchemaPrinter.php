@@ -34,6 +34,7 @@ namespace Apollo\Federation\Utils;
 use Apollo\Federation\Types\EntityObjectType;
 use Apollo\Federation\Types\EntityRefObjectType;
 use GraphQL\Error\Error;
+use GraphQL\Language\AST\Node;
 use GraphQL\Language\Printer;
 use GraphQL\Type\Definition\Directive;
 use GraphQL\Type\Definition\EnumType;
@@ -42,6 +43,7 @@ use GraphQL\Type\Definition\FieldArgument;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\InputObjectField;
 use GraphQL\Type\Definition\InputObjectType;
+use GraphQL\Type\Definition\InputType;
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ScalarType;
@@ -61,6 +63,7 @@ use function count;
 use function explode;
 use function implode;
 use function in_array;
+use function is_string;
 use function ksort;
 use function mb_strlen;
 use function preg_match_all;
@@ -102,13 +105,13 @@ class FederatedSchemaPrinter
 
     /**
      * @param callable(Directive):bool $directiveFilter
-     * @param callable(Type):bool | null $typeFilter
+     * @param callable(Type):bool $typeFilter
      * @param OptionsType $options
      */
     private static function printFilteredSchema(
         Schema $schema,
         callable $directiveFilter,
-        ?callable $typeFilter,
+        callable $typeFilter,
         array $options
     ): string {
         $directives = array_filter(
@@ -155,7 +158,6 @@ class FederatedSchemaPrinter
 
     /**
      * @param OptionsType $options
-     * @param Directive | FieldArgument | InputObjectField $def
      */
     private static function printDescription(
         array $options,
@@ -163,7 +165,7 @@ class FederatedSchemaPrinter
         string $indentation = '',
         bool $firstInBlock = true
     ): string {
-        if (!$def->description) {
+        if (!isset($def->description) || !is_string($def->description)) {
             return '';
         }
 
@@ -181,7 +183,7 @@ class FederatedSchemaPrinter
         }
 
         // Format a multi-line block quote to account for leading space.
-        $hasLeadingSpace = isset($lines[0]) && (substr($lines[0], 0, 1) === ' ' || substr($lines[0], 0, 1) === '\t');
+        $hasLeadingSpace = isset($lines[0]) && (substr($lines[0], 0, 1) === ' ' || substr($lines[0], 0, 1) === "\t");
 
         if (!$hasLeadingSpace) {
             $description .= "\n";
@@ -285,8 +287,11 @@ class FederatedSchemaPrinter
                 static fn (FieldArgument $arg): bool => !isset($arg->description) || $arg->description === '',
             )
         ) {
-            return '(' . implode(', ', array_map('self::printInputValue', $args)) . ')';
+            return '(' . implode(', ', array_map([static::class, 'printInputValue'], $args)) . ')';
         }
+
+        /** @var int[] $argIndexes */
+        $argIndexes = array_keys($args);
 
         return sprintf(
             "(\n%s\n%s)",
@@ -300,7 +305,7 @@ class FederatedSchemaPrinter
                         !$i,
                     ) . '  ' . $indentation . self::printInputValue($arg),
                     $args,
-                    array_keys($args),
+                    $argIndexes,
                 ),
             ),
             $indentation,
@@ -315,7 +320,13 @@ class FederatedSchemaPrinter
         $argDecl = $arg->name . ': ' . (string) $arg->getType();
 
         if ($arg->defaultValueExists()) {
-            $argDecl .= ' = ' . Printer::doPrint(AST::astFromValue($arg->defaultValue, $arg->getType()));
+            /** @var InputType $inputType */
+            $inputType = $arg->getType();
+
+            /** @var Node $astNode */
+            $astNode = AST::astFromValue($arg->defaultValue, $inputType);
+
+            $argDecl .= ' = ' . Printer::doPrint($astNode);
         }
 
         return $argDecl;
@@ -487,23 +498,29 @@ class FederatedSchemaPrinter
             return ' @deprecated';
         }
 
-        return ' @deprecated(reason: ' . Printer::doPrint(AST::astFromValue($reason, Type::string())) . ')';
+        /** @var Node $astNode */
+        $astNode = AST::astFromValue($reason, Type::string());
+
+        return ' @deprecated(reason: ' . Printer::doPrint($astNode) . ')';
     }
 
     private static function printFieldFederatedDirectives(FieldDefinition $field): string
     {
         $directives = [];
 
-        if (isset($field->config['isExternal']) && $field->config['isExternal'] === true) {
+        /** @var array{isExternal?: bool, provides?: string, requires?: string} $config */
+        $config = $field->config;
+
+        if (isset($config['isExternal']) && $config['isExternal'] === true) {
             $directives[] = '@external';
         }
 
-        if (isset($field->config['provides'])) {
-            $directives[] = sprintf('@provides(fields: "%s")', $field->config['provides']);
+        if (isset($config['provides'])) {
+            $directives[] = sprintf('@provides(fields: "%s")', $config['provides']);
         }
 
-        if (isset($field->config['requires'])) {
-            $directives[] = sprintf('@requires(fields: "%s")', $field->config['requires']);
+        if (isset($config['requires'])) {
+            $directives[] = sprintf('@requires(fields: "%s")', $config['requires']);
         }
 
         return implode(' ', $directives);
@@ -542,6 +559,9 @@ class FederatedSchemaPrinter
      */
     private static function printEnumValues(array $values, array $options): string
     {
+        /** @var int[] $valueIndexes */
+        $valueIndexes = array_keys($values);
+
         return implode(
             "\n",
             array_map(
@@ -550,7 +570,7 @@ class FederatedSchemaPrinter
                         $value->name .
                         self::printDeprecated($value),
                 $values,
-                array_keys($values),
+                $valueIndexes,
             ),
         );
     }

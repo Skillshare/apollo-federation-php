@@ -45,19 +45,19 @@ class EntityObjectType extends ObjectType
     /** @var string[] */
     private array $keyFields;
 
-    /** @var callable */
-    public $referenceResolver;
+    /** @var callable | null */
+    public $referenceResolver = null;
 
     /**
-     * @param mixed[] $config
+     * @param array{keyFields?: string[], __resolveReference?: callable} $config
      */
     public function __construct(array $config)
     {
-        $this->keyFields = $config['keyFields'];
+        $this->keyFields = $config['keyFields'] ?? [];
 
         if (isset($config['__resolveReference'])) {
             self::validateResolveReference($config);
-            $this->referenceResolver = $config['__resolveReference'];
+            $this->referenceResolver = $config['__resolveReference'] ?? null;
         }
 
         parent::__construct($config);
@@ -78,44 +78,47 @@ class EntityObjectType extends ObjectType
      */
     public function hasReferenceResolver(): bool
     {
-        return isset($this->referenceResolver);
+        return $this->referenceResolver !== null;
     }
 
     /**
      * Resolves an entity from a reference
      *
-     * @param mixed $ref
+     * @param array{__typename?: mixed} | null $ref
      * @param mixed $context
      * @param mixed $info
      *
      * @return mixed
      */
-    public function resolveReference($ref, $context = null, $info = null)
+    public function resolveReference(?array $ref = null, $context = null, $info = null)
     {
         $this->validateReferenceResolver();
         $this->validateReferenceKeys($ref);
 
-        return ($this->referenceResolver)($ref, $context, $info);
+        /** @var callable $resolver */
+        $resolver = $this->referenceResolver;
+
+        return ($resolver)($ref, $context, $info);
     }
 
     private function validateReferenceResolver(): void
     {
-        Utils::invariant(isset($this->referenceResolver), 'No reference resolver was set in the configuration.');
+        Utils::invariant($this->hasReferenceResolver(), 'No reference resolver was set in the configuration.');
     }
 
     /**
-     * @param mixed[] $ref
+     * @param array{__typename?: mixed} | null $ref
      */
-    private function validateReferenceKeys(array $ref): void
+    private function validateReferenceKeys(?array $ref): void
     {
         Utils::invariant(isset($ref['__typename']), 'Type name must be provided in the reference.');
     }
 
     /**
-     * @param mixed[] $config
+     * @param array{keyFields?: string[], __resolveReference?: callable} $config
      */
     public static function validateResolveReference(array $config): void
     {
-        Utils::invariant(is_callable($config['__resolveReference']), 'Reference resolver has to be callable.');
+        Utils::invariant(is_callable($config['__resolveReference'] ?? ''), 'Reference resolver has to be callable.');
     }
 }

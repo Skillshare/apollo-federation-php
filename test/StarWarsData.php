@@ -31,13 +31,13 @@ class StarWarsData
     private static array $locations;
 
     /**
-     * @return EpisodeType
+     * @return EpisodeType | null
      */
-    public static function getEpisodeById(int $id): array
+    public static function getEpisodeById(int $id): ?array
     {
         $matches = array_filter(self::getEpisodes(), fn ($episode) => $episode['id'] === $id);
 
-        return reset($matches);
+        return reset($matches) ?: null;
     }
 
     /**

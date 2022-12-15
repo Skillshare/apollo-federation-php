@@ -10,6 +10,7 @@ use GraphQL\Type\Definition\CustomScalarType;
 use GraphQL\Type\Definition\Directive;
 use GraphQL\Type\Definition\ListOfType;
 use GraphQL\Type\Definition\ObjectType;
+use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\UnionType;
 use GraphQL\Type\Schema;
@@ -68,7 +69,7 @@ class FederatedSchema extends Schema
     protected array $entityDirectives = [];
 
     /**
-     * @param array{query: Type, directives?: Directive[]} $config
+     * @param array{query: Type, directives?: Directive[], resolve?: callable} $config
      */
     public function __construct(array $config)
     {
@@ -99,9 +100,9 @@ class FederatedSchema extends Schema
     }
 
     /**
-     * @param array{directives?: Directive[]} $config
+     * @param array{query: Type, directives?: Directive[], resolve?: callable} $config
      *
-     * @return Directive[]
+     * @return array{query: Type, directives: Directive[], resolve?: callable}
      */
     private function getEntityDirectivesConfig(array $config): array
     {
@@ -112,19 +113,23 @@ class FederatedSchema extends Schema
     }
 
     /**
-     * @param array{query: Type} $config
+     * @param array{query: Type, directives?: Directive[], resolve?: callable} $config
      *
      * @return array{query: ObjectType}
      */
     private function getQueryTypeConfig(array $config): array
     {
+        /** @var array{fields: callable():array<string, mixed> | array<string, mixed>} $queryTypeConfig */
         $queryTypeConfig = $config['query']->config;
+
         if (is_callable($queryTypeConfig['fields'])) {
-            $queryTypeConfig['fields'] = $queryTypeConfig['fields']();
+            $fields = $queryTypeConfig['fields']();
+        } else {
+            $fields = $queryTypeConfig['fields'];
         }
 
         $queryTypeConfig['fields'] = array_merge(
-            $queryTypeConfig['fields'],
+            $fields,
             $this->getQueryTypeServiceFieldConfig(),
             $this->getQueryTypeEntitiesFieldConfig($config),
         );
@@ -158,11 +163,11 @@ class FederatedSchema extends Schema
     }
 
     /**
-     * @param array{resolve?: callable(mixed, mixed[], mixed, mixed):array} | null $config
+     * @param array{query: Type, directives?: Directive[], resolve?: mixed} $config
      *
-     * @return array{_entities: array{type: ListOfType, args: array{representations: array{type: Type}}, resolve: callable(mixed, mixed[], mixed, mixed):array}}
+     * @return array{_entities?: array{type: ListOfType, args: array{representations: array{type: Type}}, resolve: callable}}
      */
-    private function getQueryTypeEntitiesFieldConfig(?array $config): array
+    private function getQueryTypeEntitiesFieldConfig(array $config): array
     {
         if (!$this->hasEntityTypes()) {
             return [];
@@ -175,7 +180,13 @@ class FederatedSchema extends Schema
 
         $anyType = new CustomScalarType([
             'name' => '_Any',
-            'serialize' => fn ($value) => $value,
+            'serialize' =>
+                /**
+                 * @param scalar $value
+                 *
+                 * @return scalar
+                 */
+                fn ($value) => $value,
         ]);
 
         return [
@@ -186,60 +197,84 @@ class FederatedSchema extends Schema
                         'type' => Type::nonNull(Type::listOf(Type::nonNull($anyType))),
                     ],
                 ],
-                'resolve' => function ($root, $args, $context, $info) use ($config) {
-                    if (isset($config) && isset($config['resolve']) && is_callable($config['resolve'])) {
-                        return $config['resolve']($root, $args, $context, $info);
-                    } else {
-                        return $this->resolve($root, $args, $context, $info);
-                    }
-                },
+                'resolve' =>
+                    /**
+                     * @param mixed $root
+                     * @param array{representations: array<array{__typename?: string}>} $args
+                     * @param mixed $context
+                     *
+                     * @return mixed[]
+                     */
+                    function ($root, array $args, $context, ResolveInfo $info) use ($config): array {
+                        if (isset($config['resolve']) && is_callable($config['resolve'])) {
+                            /** @var mixed[] */
+                            return $config['resolve']($root, $args, $context, $info);
+                        } else {
+                            /**
+                             * PHPStan is weird...
+                             *
+                             * @var array{representations: array<array{__typename?: string}>} $argsArgument
+                             * @psalm-suppress UnnecessaryVarAnnotation
+                             */
+                            $argsArgument = $args;
+
+                            return $this->resolve($root, $argsArgument, $context, $info);
+                        }
+                    },
             ],
         ];
     }
 
     /**
      * @param mixed $root
-     * @param mixed[] $args
+     * @param array{representations: array<array{__typename?: string}>} $args
      * @param mixed $context
-     * @param mixed $info
      *
      * @return mixed[]
+     *
+     * @psalm-suppress UnusedParam $root is unused here, but it might be used by another callable
      */
-    private function resolve($root, array $args, $context, $info): array
+    private function resolve($root, array $args, $context, ResolveInfo $info): array
     {
-        return array_map(function ($ref) use ($context, $info) {
-            Utils::invariant(isset($ref['__typename']), 'Type name must be provided in the reference.');
+        return array_map(
+            /**
+             * @param array{__typename?: string} $ref
+             */
+            function (array $ref) use ($context, $info) {
+                Utils::invariant(isset($ref['__typename']), 'Type name must be provided in the reference.');
 
-            $typeName = $ref['__typename'];
+                $typeName = $ref['__typename'] ?? '';
 
-            /** @var EntityObjectType $type */
-            $type = $info->schema->getType($typeName);
+                /** @var EntityObjectType $type */
+                $type = $info->schema->getType($typeName);
 
-            Utils::invariant(
-                $type instanceof EntityObjectType,
-                sprintf(
-                    'The _entities resolver tried to load an entity for '
-                    . 'type "%s", but no object type of that name was found in the schema',
-                    $type->name,
-                ),
-            );
+                Utils::invariant(
+                    $type instanceof EntityObjectType,
+                    sprintf(
+                        'The _entities resolver tried to load an entity for '
+                        . 'type "%s", but no object type of that name was found in the schema',
+                        $type->name,
+                    ),
+                );
 
-            if (!$type->hasReferenceResolver()) {
-                return $ref;
-            }
+                if (!$type->hasReferenceResolver()) {
+                    return $ref;
+                }
 
-            return $type->resolveReference($ref, $context, $info);
-        }, $args['representations']);
+                return $type->resolveReference($ref, $context, $info);
+            },
+            $args['representations'],
+        );
     }
 
     /**
-     * @param array{query: Type} $config
+     * @param array{query: Type, directives?: Directive[], resolve?: callable} $config
      *
      * @return EntityObjectType[]
      */
     private function extractEntityTypes(array $config): array
     {
-        $resolvedTypes = TypeInfo::extractTypes($config['query']);
+        $resolvedTypes = TypeInfo::extractTypes($config['query']) ?? [];
         $entityTypes = [];
 
         foreach ($resolvedTypes as $type) {

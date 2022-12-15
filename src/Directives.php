@@ -15,9 +15,9 @@ use Apollo\Federation\Directives\RequiresDirective;
 class Directives
 {
     /**
-     * @var array{key: KeyDirective, external: ExternalDirective, requires: RequiresDirective, provides: ProvidesDirective}
+     * @var array{key: KeyDirective, external: ExternalDirective, requires: RequiresDirective, provides: ProvidesDirective} | null
      */
-    private static array $directives;
+    private static ?array $directives = null;
 
     /**
      * Gets the @key directive
@@ -58,7 +58,7 @@ class Directives
      */
     public static function getDirectives(): array
     {
-        if (!self::$directives) {
+        if (self::$directives === null) {
             self::$directives = [
                 'key' => new KeyDirective(),
                 'external' => new ExternalDirective(),

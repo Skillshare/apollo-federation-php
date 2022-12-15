@@ -14,7 +14,7 @@ class EntitiesTest extends TestCase
 {
     use MatchesSnapshots;
 
-    public function testCreatingEntityType()
+    public function testCreatingEntityType(): void
     {
         $userTypeKeyFields = ['id', 'email'];
 
@@ -33,7 +33,7 @@ class EntitiesTest extends TestCase
         $this->assertMatchesSnapshot($userType->config);
     }
 
-    public function testCreatingEntityTypeWithCallable()
+    public function testCreatingEntityTypeWithCallable(): void
     {
         $userTypeKeyFields = ['id', 'email'];
 
@@ -52,7 +52,7 @@ class EntitiesTest extends TestCase
         $this->assertMatchesSnapshot($userType->config);
     }
 
-    public function testResolvingEntityReference()
+    public function testResolvingEntityReference(): void
     {
         $expectedRef = [
             'id' => 1,
@@ -79,7 +79,7 @@ class EntitiesTest extends TestCase
         $this->assertEquals($expectedRef, $actualRef);
     }
 
-    public function testCreatingEntityRefType()
+    public function testCreatingEntityRefType(): void
     {
         $userTypeKeyFields = ['id', 'email'];
 

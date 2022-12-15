@@ -17,7 +17,7 @@ class DirectivesTest extends TestCase
 {
     use MatchesSnapshots;
 
-    public function testKeyDirective()
+    public function testKeyDirective(): void
     {
         $config = Directives::key()->config;
 
@@ -27,7 +27,7 @@ class DirectivesTest extends TestCase
         $this->assertEqualsCanonicalizing($config['locations'], $expectedLocations);
     }
 
-    public function testExternalDirective()
+    public function testExternalDirective(): void
     {
         $config = Directives::external()->config;
 
@@ -37,7 +37,7 @@ class DirectivesTest extends TestCase
         $this->assertEqualsCanonicalizing($config['locations'], $expectedLocations);
     }
 
-    public function testRequiresDirective()
+    public function testRequiresDirective(): void
     {
         $config = Directives::requires()->config;
 
@@ -47,7 +47,7 @@ class DirectivesTest extends TestCase
         $this->assertEqualsCanonicalizing($config['locations'], $expectedLocations);
     }
 
-    public function testProvidesDirective()
+    public function testProvidesDirective(): void
     {
         $config = Directives::provides()->config;
 
@@ -57,7 +57,7 @@ class DirectivesTest extends TestCase
         $this->assertEqualsCanonicalizing($config['locations'], $expectedLocations);
     }
 
-    public function testItAddsDirectivesToSchema()
+    public function testItAddsDirectivesToSchema(): void
     {
         $schema = new Schema([
             'query' => new ObjectType([

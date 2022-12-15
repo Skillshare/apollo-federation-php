@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Apollo\Federation\Tests;
 
 use GraphQL\GraphQL;
+use GraphQL\Type\Definition\UnionType;
 use GraphQL\Utils\SchemaPrinter;
 use PHPUnit\Framework\TestCase;
 use Spatie\Snapshots\MatchesSnapshots;
@@ -15,7 +16,7 @@ class SchemaTest extends TestCase
 {
     use MatchesSnapshots;
 
-    public function testRunningQueries()
+    public function testRunningQueries(): void
     {
         $schema = StarWarsSchema::getEpisodesSchema();
         $query = 'query GetEpisodes { episodes { id title characters { id name } } }';
@@ -25,7 +26,7 @@ class SchemaTest extends TestCase
         $this->assertMatchesSnapshot($result->toArray());
     }
 
-    public function testEntityTypes()
+    public function testEntityTypes(): void
     {
         $schema = StarWarsSchema::getEpisodesSchema();
 
@@ -38,11 +39,13 @@ class SchemaTest extends TestCase
         $this->assertArrayHasKey('Location', $entityTypes);
     }
 
-    public function testMetaTypes()
+    public function testMetaTypes(): void
     {
         $schema = StarWarsSchema::getEpisodesSchema();
 
         $anyType = $schema->getType('_Any');
+
+        /** @var UnionType $entitiesType */
         $entitiesType = $schema->getType('_Entity');
 
         $this->assertNotNull($anyType);
@@ -50,7 +53,7 @@ class SchemaTest extends TestCase
         $this->assertEqualsCanonicalizing($entitiesType->getTypes(), array_values($schema->getEntityTypes()));
     }
 
-    public function testDirectives()
+    public function testDirectives(): void
     {
         $schema = StarWarsSchema::getEpisodesSchema();
         $directives = $schema->getDirectives();
@@ -67,7 +70,7 @@ class SchemaTest extends TestCase
         $this->assertArrayHasKey('deprecated', $directives);
     }
 
-    public function testServiceSdl()
+    public function testServiceSdl(): void
     {
         $schema = StarWarsSchema::getEpisodesSchema();
         $query = 'query GetServiceSdl { _service { sdl } }';
@@ -77,7 +80,7 @@ class SchemaTest extends TestCase
         $this->assertMatchesSnapshot($result->toArray());
     }
 
-    public function testSchemaSdl()
+    public function testSchemaSdl(): void
     {
         $schema = StarWarsSchema::getEpisodesSchema();
         $schemaSdl = SchemaPrinter::doPrint($schema);
@@ -85,7 +88,7 @@ class SchemaTest extends TestCase
         $this->assertMatchesSnapshot($schemaSdl);
     }
 
-    public function testResolvingEntityReferences()
+    public function testResolvingEntityReferences(): void
     {
         $schema = StarWarsSchema::getEpisodesSchema();
 
@@ -110,11 +113,15 @@ class SchemaTest extends TestCase
         ];
 
         $result = GraphQL::executeQuery($schema, $query, null, null, $variables);
-        $this->assertCount(1, $result->data['_entities']);
+
+        /** @var mixed[] $entities */
+        $entities = $result->data['_entities'] ?? [];
+
+        $this->assertCount(1, $entities);
         $this->assertMatchesSnapshot($result->toArray());
     }
 
-    public function testOverrideSchemaResolver()
+    public function testOverrideSchemaResolver(): void
     {
         $schema = StarWarsSchema::getEpisodesSchemaCustomResolver();
 
@@ -139,9 +146,13 @@ class SchemaTest extends TestCase
         ];
 
         $result = GraphQL::executeQuery($schema, $query, null, null, $variables);
+
+        /** @var array{_entities: array<array{title: string}>} $data */
+        $data = $result->data;
+
         // The custom resolver for this schema, always adds 1 to the id and gets the next
         // episode for the sake of testing the ability to change the resolver in the configuration
-        $this->assertEquals('The Empire Strikes Back', $result->data['_entities'][0]['title']);
+        $this->assertEquals('The Empire Strikes Back', $data['_entities'][0]['title']);
         $this->assertMatchesSnapshot($result->toArray());
     }
 }

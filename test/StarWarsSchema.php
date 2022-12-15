@@ -19,7 +19,7 @@ class StarWarsSchema
 
     public static function getEpisodesSchema(): FederatedSchema
     {
-        if (!self::$episodesSchema) {
+        if (!isset(self::$episodesSchema)) {
             self::$episodesSchema = new FederatedSchema([
                 'query' => self::getQueryType(),
             ]);
@@ -30,7 +30,7 @@ class StarWarsSchema
 
     public static function getEpisodesSchemaCustomResolver(): FederatedSchema
     {
-        if (!self::$overRiddedEpisodesSchema) {
+        if (!isset(self::$overRiddedEpisodesSchema)) {
             self::$overRiddedEpisodesSchema = new FederatedSchema([
                 'query' => self::getQueryType(),
                 'resolve' => fn ($root, $args, $context, $info) => array_map(function ($ref) use ($info) {
