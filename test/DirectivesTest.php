@@ -4,22 +4,20 @@ declare(strict_types=1);
 
 namespace Apollo\Federation\Tests;
 
+use Apollo\Federation\Directives;
+use GraphQL\Language\DirectiveLocation;
+use GraphQL\Type\Definition\ObjectType;
+use GraphQL\Type\Definition\Type;
+use GraphQL\Type\Schema;
+use GraphQL\Utils\SchemaPrinter;
 use PHPUnit\Framework\TestCase;
 use Spatie\Snapshots\MatchesSnapshots;
-
-use GraphQL\Type\Schema;
-use GraphQL\Type\Definition\Type;
-use GraphQL\Type\Definition\ObjectType;
-use GraphQL\Language\DirectiveLocation;
-use GraphQL\Utils\SchemaPrinter;
-
-use Apollo\Federation\Directives;
 
 class DirectivesTest extends TestCase
 {
     use MatchesSnapshots;
 
-    public function testKeyDirective()
+    public function testKeyDirective(): void
     {
         $config = Directives::key()->config;
 
@@ -29,7 +27,7 @@ class DirectivesTest extends TestCase
         $this->assertEqualsCanonicalizing($config['locations'], $expectedLocations);
     }
 
-    public function testExternalDirective()
+    public function testExternalDirective(): void
     {
         $config = Directives::external()->config;
 
@@ -39,7 +37,7 @@ class DirectivesTest extends TestCase
         $this->assertEqualsCanonicalizing($config['locations'], $expectedLocations);
     }
 
-    public function testRequiresDirective()
+    public function testRequiresDirective(): void
     {
         $config = Directives::requires()->config;
 
@@ -49,7 +47,7 @@ class DirectivesTest extends TestCase
         $this->assertEqualsCanonicalizing($config['locations'], $expectedLocations);
     }
 
-    public function testProvidesDirective()
+    public function testProvidesDirective(): void
     {
         $config = Directives::provides()->config;
 
@@ -59,16 +57,16 @@ class DirectivesTest extends TestCase
         $this->assertEqualsCanonicalizing($config['locations'], $expectedLocations);
     }
 
-    public function testItAddsDirectivesToSchema()
+    public function testItAddsDirectivesToSchema(): void
     {
         $schema = new Schema([
             'query' => new ObjectType([
                 'name' => 'Query',
                 'fields' => [
-                    '_' => ['type' => Type::string()]
-                ]
+                    '_' => ['type' => Type::string()],
+                ],
             ]),
-            'directives' => Directives::getDirectives()
+            'directives' => Directives::getDirectives(),
         ]);
 
         $schemaSdl = SchemaPrinter::doPrint($schema);

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="./vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="./test/Bootstrap.php"
+         colors="true"
+         verbose="true">
+
+    <testsuites>
+        <testsuite name="skillshare/apollo-federation-php Test Suite">
+            <directory>./test</directory>
+        </testsuite>
+    </testsuites>
+
+    <coverage processUncoveredFiles="true">
+        <include>
+            <directory suffix=".php">./src</directory>
+        </include>
+        <exclude>
+            <file>./src/Utils/FederatedSchemaPrinter.php</file>
+        </exclude>
+        <report>
+            <clover outputFile="cov.xml"/>
+            <text outputFile="php://stdout"/>
+        </report>
+    </coverage>
+
+    <php>
+        <ini name="error_reporting" value="E_ALL &amp; ~E_DEPRECATED"/>
+    </php>
+
+</phpunit>

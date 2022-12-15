@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Apollo\Federation\Types;
 
-use GraphQL\Utils\Utils;
 use GraphQL\Type\Definition\ObjectType;
+use GraphQL\Utils\Utils;
 
-use array_key_exists;
+use function is_callable;
 
 /**
  * An entity is a type that can be referenced by another service. Entities create
@@ -39,26 +39,25 @@ use array_key_exists;
  *         ]
  *       ]
  *     ]);
- *
  */
 class EntityObjectType extends ObjectType
 {
-    /** @var array */
-    private $keyFields;
+    /** @var string[] */
+    private array $keyFields;
 
-    /** @var callable */
-    public $referenceResolver;
+    /** @var callable | null */
+    public $referenceResolver = null;
 
     /**
-     * @param mixed[] $config
+     * @param array{keyFields?: string[], __resolveReference?: callable} $config
      */
     public function __construct(array $config)
     {
-        $this->keyFields = $config['keyFields'];
+        $this->keyFields = $config['keyFields'] ?? [];
 
         if (isset($config['__resolveReference'])) {
             self::validateResolveReference($config);
-            $this->referenceResolver = $config['__resolveReference'];
+            $this->referenceResolver = $config['__resolveReference'] ?? null;
         }
 
         parent::__construct($config);
@@ -67,7 +66,7 @@ class EntityObjectType extends ObjectType
     /**
      * Gets the fields that serve as the unique key or identifier of the entity.
      *
-     * @return array
+     * @return string[]
      */
     public function getKeyFields(): array
     {
@@ -76,43 +75,51 @@ class EntityObjectType extends ObjectType
 
     /**
      * Gets whether this entity has a resolver set
-     *
-     * @return bool
      */
     public function hasReferenceResolver(): bool
     {
-        return isset($this->referenceResolver);
+        return $this->referenceResolver !== null;
     }
 
     /**
      * Resolves an entity from a reference
      *
-     * @param mixed $ref
+     * @param array{__typename?: mixed} | null $ref
      * @param mixed $context
      * @param mixed $info
+     *
+     * @return mixed
      */
-    public function resolveReference($ref, $context = null, $info = null)
+    // phpcs:ignore SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
+    public function resolveReference(?array $ref = null, $context = null, $info = null)
     {
         $this->validateReferenceResolver();
         $this->validateReferenceKeys($ref);
 
-        $entity = ($this->referenceResolver)($ref, $context, $info);
-        
-        return $entity;
+        /** @var callable $resolver */
+        $resolver = $this->referenceResolver;
+
+        return ($resolver)($ref, $context, $info);
     }
 
-    private function validateReferenceResolver()
+    private function validateReferenceResolver(): void
     {
-        Utils::invariant(isset($this->referenceResolver), 'No reference resolver was set in the configuration.');
+        Utils::invariant($this->hasReferenceResolver(), 'No reference resolver was set in the configuration.');
     }
 
-    private function validateReferenceKeys($ref)
+    /**
+     * @param array{__typename?: mixed} | null $ref
+     */
+    private function validateReferenceKeys(?array $ref): void
     {
         Utils::invariant(isset($ref['__typename']), 'Type name must be provided in the reference.');
     }
 
-    public static function validateResolveReference(array $config)
+    /**
+     * @param array{keyFields?: string[], __resolveReference?: callable} $config
+     */
+    public static function validateResolveReference(array $config): void
     {
-        Utils::invariant(is_callable($config['__resolveReference']), 'Reference resolver has to be callable.');
+        Utils::invariant(is_callable($config['__resolveReference'] ?? ''), 'Reference resolver has to be callable.');
     }
 }

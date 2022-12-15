@@ -21,8 +21,14 @@
     }
   },
   "lint-staged": {
-    "*": [
-      "prettier --write",
+    "composer.json": [
+      "composer normalize",
+      "git add"
+    ],
+    "{src,tests}/**/*.php": [
+      "composer dev:lint:fix",
+      "composer dev:lint",
+      "composer dev:analyze",
       "git add"
     ]
   }

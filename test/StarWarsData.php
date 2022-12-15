@@ -4,102 +4,137 @@ declare(strict_types=1);
 
 namespace Apollo\Federation\Tests;
 
+use function array_filter;
+use function in_array;
+use function reset;
+
+/**
+ * @psalm-type EpisodeType = array{id: int, title: string, characters: int[]}
+ * @psalm-type CharacterType = array{id: int, name: string, locations: int[]}
+ * @psalm-type LocationType = array{id: int, name: string}
+ */
 class StarWarsData
 {
-    private static $episodes;
+    /**
+     * @var EpisodeType[]
+     */
+    private static array $episodes;
 
-    private static $characters;
+    /**
+     * @var CharacterType[]
+     */
+    private static array $characters;
 
-    private static $locations;
+    /**
+     * @var LocationType[]
+     */
+    private static array $locations;
 
-    public static function getEpisodeById($id)
+    /**
+     * @return EpisodeType | null
+     */
+    public static function getEpisodeById(int $id): ?array
     {
-        $matches = array_filter(self::getEpisodes(), function ($episode) use ($id) {
-            return $episode['id'] === $id;
-        });
-        return reset($matches);
+        $matches = array_filter(self::getEpisodes(), fn ($episode) => $episode['id'] === $id);
+
+        return reset($matches) ?: null;
     }
 
-    public static function getEpisodes()
+    /**
+     * @return EpisodeType[]
+     */
+    public static function getEpisodes(): array
     {
-        if (!self::$episodes) {
+        if (!isset(self::$episodes)) {
             self::$episodes = [
                 [
                     'id' => 1,
                     'title' => 'A New Hope',
-                    'characters' => [1, 2, 3]
+                    'characters' => [1, 2, 3],
                 ],
                 [
                     'id' => 2,
                     'title' => 'The Empire Strikes Back',
-                    'characters' => [1, 2, 3]
+                    'characters' => [1, 2, 3],
                 ],
                 [
                     'id' => 3,
                     'title' => 'Return of the Jedi',
-                    'characters' => [1, 2, 3]
-                ]
+                    'characters' => [1, 2, 3],
+                ],
             ];
         }
 
         return self::$episodes;
     }
 
-    public static function getCharactersByIds($ids)
+    /**
+     * @param int[] $ids
+     *
+     * @return CharacterType[]
+     */
+    public static function getCharactersByIds(array $ids): array
     {
-        return array_filter(self::getCharacters(), function ($character) use ($ids) {
-            return in_array($character['id'], $ids);
-        });
+        return array_filter(self::getCharacters(), fn ($character) => in_array($character['id'], $ids));
     }
 
-    public static function getCharacters()
+    /**
+     * @return CharacterType[]
+     */
+    public static function getCharacters(): array
     {
-        if (!self::$characters) {
+        if (!isset(self::$characters)) {
             self::$characters = [
                 [
                     'id' => 1,
                     'name' => 'Luke Skywalker',
-                    'locations' => [1, 2, 3]
+                    'locations' => [1, 2, 3],
                 ],
                 [
                     'id' => 2,
                     'name' => 'Han Solo',
-                    'locations' => [1, 2]
+                    'locations' => [1, 2],
                 ],
                 [
                     'id' => 3,
                     'name' => 'Leia Skywalker',
-                    'locations' => [3]
-                ]
+                    'locations' => [3],
+                ],
             ];
         }
 
         return self::$characters;
     }
 
-    public static function getLocationsByIds($ids)
+    /**
+     * @param int[] $ids
+     *
+     * @return LocationType[]
+     */
+    public static function getLocationsByIds(array $ids): array
     {
-        return array_filter(self::getLocations(), function ($location) use ($ids) {
-            return in_array($location['id'], $ids);
-        });
+        return array_filter(self::getLocations(), fn ($location) => in_array($location['id'], $ids));
     }
 
-    public static function getLocations()
+    /**
+     * @return LocationType[]
+     */
+    public static function getLocations(): array
     {
-        if (!self::$locations) {
+        if (!isset(self::$locations)) {
             self::$locations = [
                 [
                     'id' => 1,
-                    'name' => 'Tatooine'
+                    'name' => 'Tatooine',
                 ],
                 [
                     'id' => 2,
-                    'name' => 'Endor'
+                    'name' => 'Endor',
                 ],
                 [
                     'id' => 3,
-                    'name' => 'Hoth'
-                ]
+                    'name' => 'Hoth',
+                ],
             ];
         }
 

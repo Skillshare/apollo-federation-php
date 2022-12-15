@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Apollo\Federation;
 
-use Apollo\Federation\Directives\KeyDirective;
 use Apollo\Federation\Directives\ExternalDirective;
+use Apollo\Federation\Directives\KeyDirective;
 use Apollo\Federation\Directives\ProvidesDirective;
 use Apollo\Federation\Directives\RequiresDirective;
 
@@ -14,8 +14,10 @@ use Apollo\Federation\Directives\RequiresDirective;
  */
 class Directives
 {
-    /** @var array */
-    private static $directives;
+    /**
+     * @var array{key: KeyDirective, external: ExternalDirective, requires: RequiresDirective, provides: ProvidesDirective} | null
+     */
+    private static ?array $directives = null;
 
     /**
      * Gets the @key directive
@@ -51,15 +53,17 @@ class Directives
 
     /**
      * Gets the directives that can be used on federated entity types
+     *
+     * @return array{key: KeyDirective, external: ExternalDirective, requires: RequiresDirective, provides: ProvidesDirective}
      */
     public static function getDirectives(): array
     {
-        if (!self::$directives) {
+        if (self::$directives === null) {
             self::$directives = [
                 'key' => new KeyDirective(),
                 'external' => new ExternalDirective(),
                 'requires' => new RequiresDirective(),
-                'provides' => new ProvidesDirective()
+                'provides' => new ProvidesDirective(),
             ];
         }
 
