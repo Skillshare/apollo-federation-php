@@ -97,11 +97,7 @@ jobs:
   code-coverage:
     name: "Code coverage"
     needs: ["coding-standards", "static-analysis"]
-    runs-on: "${{ matrix.os }}"
-
-    strategy:
-      matrix:
-        os: ["macos-latest", "ubuntu-latest", "windows-latest"]
+    runs-on: "ubuntu-latest"
 
     steps:
       - name: "Checkout repository"
