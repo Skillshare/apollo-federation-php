@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a01e53b093d162fe460a38a3d81ff3ef",
+    "content-hash": "20fe2be9027806f8375e84c21a99e0a2",
     "packages": [
         {
             "name": "webonyx/graphql-php",
@@ -4067,16 +4067,16 @@
         },
         {
             "name": "spatie/phpunit-snapshot-assertions",
-            "version": "4.2.14",
+            "version": "4.2.16",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spatie/phpunit-snapshot-assertions.git",
-                "reference": "339db94d5a38b23782a49b9041194a8509bd1854"
+                "reference": "4c325139313c06b656ba10d5b60306c0de728c1f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spatie/phpunit-snapshot-assertions/zipball/339db94d5a38b23782a49b9041194a8509bd1854",
-                "reference": "339db94d5a38b23782a49b9041194a8509bd1854",
+                "url": "https://api.github.com/repos/spatie/phpunit-snapshot-assertions/zipball/4c325139313c06b656ba10d5b60306c0de728c1f",
+                "reference": "4c325139313c06b656ba10d5b60306c0de728c1f",
                 "shasum": ""
             },
             "require": {
@@ -4123,7 +4123,7 @@
             ],
             "support": {
                 "issues": "https://github.com/spatie/phpunit-snapshot-assertions/issues",
-                "source": "https://github.com/spatie/phpunit-snapshot-assertions/tree/4.2.14"
+                "source": "https://github.com/spatie/phpunit-snapshot-assertions/tree/4.2.16"
             },
             "funding": [
                 {
@@ -4131,7 +4131,7 @@
                     "type": "custom"
                 }
             ],
-            "time": "2022-07-29T14:54:35+00:00"
+            "time": "2022-10-10T15:58:50+00:00"
         },
         {
             "name": "squizlabs/php_codesniffer",
