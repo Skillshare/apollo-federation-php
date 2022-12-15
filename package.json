@@ -26,9 +26,9 @@
       "git add"
     ],
     "{src,tests}/**/*.php": [
-      "composer sk:lint:fix",
-      "composer sk:lint",
-      "composer sk:analyze",
+      "composer dev:lint:fix",
+      "composer dev:lint",
+      "composer dev:analyze",
       "git add"
     ]
   }

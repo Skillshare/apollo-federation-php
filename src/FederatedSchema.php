@@ -234,6 +234,7 @@ class FederatedSchema extends Schema
      *
      * @psalm-suppress UnusedParam $root is unused here, but it might be used by another callable
      */
+    // phpcs:ignore SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
     private function resolve($root, array $args, $context, ResolveInfo $info): array
     {
         return array_map(

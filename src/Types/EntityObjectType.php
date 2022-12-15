@@ -90,6 +90,7 @@ class EntityObjectType extends ObjectType
      *
      * @return mixed
      */
+    // phpcs:ignore SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
     public function resolveReference(?array $ref = null, $context = null, $info = null)
     {
         $this->validateReferenceResolver();
