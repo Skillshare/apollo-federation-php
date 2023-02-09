@@ -20,12 +20,12 @@ trait FederatedSchemaTrait
     /**
      * @var EntityObjectType[]
      */
-    protected array $entityTypes = [];
+    protected $entityTypes = [];
 
     /**
      * @var SchemaExtensionType[]
      */
-    protected array $schemaExtensionTypes = [];
+    protected $schemaExtensionTypes = [];
 
     /**
      * Returns all the resolved entity types in the schema.
@@ -89,7 +89,9 @@ trait FederatedSchemaTrait
             'fields' => [
                 FederatedSchema::RESERVED_FIELD_SDL => [
                     'type' => Type::string(),
-                    'resolve' => fn (): string => FederatedSchemaPrinter::doPrint($this),
+                    'resolve' => function (): string {
+                        return FederatedSchemaPrinter::doPrint($this);
+                    },
                 ],
             ],
         ]);
@@ -97,7 +99,9 @@ trait FederatedSchemaTrait
         return [
             FederatedSchema::RESERVED_FIELD_SERVICE => [
                 'type' => Type::nonNull($serviceType),
-                'resolve' => static fn (): array => [],
+                'resolve' => static function (): array {
+                    return [];
+                },
             ],
         ];
     }
@@ -120,7 +124,9 @@ trait FederatedSchemaTrait
 
         $anyType = new CustomScalarType([
             'name' => FederatedSchema::RESERVED_TYPE_ANY,
-            'serialize' => static fn ($value) => $value,
+            'serialize' => static function ($value) {
+                return $value;
+            },
         ]);
 
         return [

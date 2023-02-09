@@ -15,8 +15,15 @@ use GraphQL\Type\Definition\Type;
 
 class StarWarsSchema
 {
-    public static ?FederatedSchema $episodesSchema = null;
-    public static ?FederatedSchema $overriddenEpisodesSchema = null;
+    /**
+     * @var FederatedSchema|null
+     */
+    public static $episodesSchema;
+
+    /**
+     * @var FederatedSchema|null
+     */
+    public static $overriddenEpisodesSchema;
 
     public static function getEpisodesSchema(): FederatedSchema
     {
@@ -64,7 +71,9 @@ class StarWarsSchema
             'fields' => [
                 'episodes' => [
                     'type' => Type::nonNull(Type::listOf(Type::nonNull($episodeType))),
-                    'resolve' => static fn (): array => StarWarsData::getEpisodes(),
+                    'resolve' => static function (): array {
+                        return StarWarsData::getEpisodes();
+                    },
                 ],
                 'deprecatedEpisodes' => [
                     'type' => Type::nonNull(Type::listOf(Type::nonNull($episodeType))),
@@ -88,7 +97,9 @@ class StarWarsSchema
                 ],
                 'characters' => [
                     'type' => Type::nonNull(Type::listOf(Type::nonNull(self::getCharacterType()))),
-                    'resolve' => static fn ($root): array => StarWarsData::getCharactersByIds($root['characters']),
+                    'resolve' => static function ($root): array {
+                        return StarWarsData::getCharactersByIds($root['characters']);
+                    },
                     'provides' => 'name',
                 ],
             ],
@@ -118,7 +129,9 @@ class StarWarsSchema
                 ],
                 'locations' => [
                     'type' => Type::nonNull(Type::listOf(self::getLocationType())),
-                    'resolve' => static fn ($root): array => StarWarsData::getLocationsByIds($root['locations']),
+                    'resolve' => static function ($root): array {
+                        return StarWarsData::getLocationsByIds($root['locations']);
+                    },
                     'requires' => 'name',
                 ],
             ],

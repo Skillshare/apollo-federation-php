@@ -21,7 +21,14 @@ class LinkDirective extends Directive
     {
         $linkImport = new CustomScalarType([
             'name' => 'link_Import',
-            'serialize' => static fn ($value) => json_encode($value, \JSON_THROW_ON_ERROR),
+            'serialize' => static function ($value) {
+                $data = json_encode($value);
+                if (json_last_error()) {
+                    throw new \RuntimeException(json_last_error_msg());
+                }
+
+                return $data;
+            },
             'parseValue' => static function ($value) {
                 if (\is_string($value)) {
                     return $value;

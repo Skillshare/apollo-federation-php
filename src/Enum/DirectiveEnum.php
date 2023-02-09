@@ -18,7 +18,7 @@ class DirectiveEnum
     /**
      * @var string[]|null
      */
-    protected static ?array $constants = null;
+    protected static $constants;
 
     /**
      * @return string[]

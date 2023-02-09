@@ -31,7 +31,7 @@ class Directives
      *     shareable: ShareableDirective,
      * }|null
      */
-    private static ?array $directives = null;
+    private static $directives;
 
     /**
      * Gets the @key directive.

@@ -73,8 +73,12 @@ class FederatedSchemaPrinter extends SchemaPrinter
     {
         return static::printFilteredSchema(
             $schema,
-            static fn (Directive $type): bool => !Directive::isSpecifiedDirective($type) && !static::isFederatedDirective($type),
-            static fn (Type $type): bool => !Type::isBuiltInType($type),
+            static function (Directive $type): bool {
+                return !Directive::isSpecifiedDirective($type) && !static::isFederatedDirective($type);
+            },
+            static function (Type $type): bool {
+                return !Type::isBuiltInType($type);
+            },
             $options
         );
     }
@@ -185,7 +189,9 @@ class FederatedSchemaPrinter extends SchemaPrinter
         $interfaces = $type->getInterfaces();
 
         return !empty($interfaces)
-            ? ' implements ' . implode(' & ', array_map(static fn (InterfaceType $i): string => $i->name, $interfaces))
+            ? ' implements ' . implode(' & ', array_map(static function (InterfaceType $i): string {
+                return $i->name;
+            }, $interfaces))
             : '';
     }
 
@@ -257,7 +263,12 @@ class FederatedSchemaPrinter extends SchemaPrinter
             throw new \InvalidArgumentException('Invalid type of "import" argument value');
         }
 
-        return json_encode($argument, \JSON_THROW_ON_ERROR);
+        $data = json_encode($argument);
+        if (json_last_error()) {
+            throw new \RuntimeException(json_last_error_msg());
+        }
+
+        return $data;
     }
 
     /**
@@ -301,7 +312,9 @@ class FederatedSchemaPrinter extends SchemaPrinter
 
         return sprintf(
             'extend schema %s\n',
-            implode("\n", array_map(static fn (array $x): string => static::printLinkDirectiveConfig($x), $links)),
+            implode("\n", array_map(static function (array $x): string {
+                return static::printLinkDirectiveConfig($x);
+            }, $links))
         );
     }
 }

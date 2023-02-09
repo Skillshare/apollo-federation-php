@@ -3209,7 +3209,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": "^7.4||^8.0"
+        "php": "^7.1||^8.0"
     },
     "platform-dev": [],
     "plugin-api-version": "2.3.0"

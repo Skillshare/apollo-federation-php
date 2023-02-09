@@ -56,7 +56,7 @@ class EntityObjectType extends ObjectType
     /**
      * @var array<int,array{fields: array<int,string>|array<int|string,string|array<int|string,mixed>>, resolvable: bool }>
      */
-    private array $keys;
+    private $keys;
 
     /**
      * @param array<string,mixed> $config
@@ -68,8 +68,9 @@ class EntityObjectType extends ObjectType
             'Use only one way to define directives @key.'
         );
 
-        $this->keys = $config[self::FIELD_KEYS]
-            ?? array_map(static fn ($x): array => ['fields' => $x], $config['keyFields']);
+        $this->keys = $config[self::FIELD_KEYS] ?? array_map(static function ($x): array {
+            return ['fields' => $x];
+        }, $config['keyFields']);
 
         if (isset($config[self::FIELD_REFERENCE_RESOLVER])) {
             self::validateResolveReference($config);
@@ -97,7 +98,9 @@ class EntityObjectType extends ObjectType
             \E_USER_DEPRECATED
         );
 
-        return array_merge(...array_map(static fn(array $x): array => (array) $x['fields'], $this->keys));
+        return array_merge(...array_map(static function (array $x): array {
+            return (array) $x['fields'];
+        }, $this->keys));
     }
 
     /**

@@ -9,24 +9,26 @@ class StarWarsData
     /**
      * @var array<int,array<string,mixed>>|null
      */
-    private static ?array $episodes = null;
+    private static $episodes;
 
     /**
      * @var array<int,array<string,mixed>>|null
      */
-    private static ?array $characters = null;
+    private static $characters;
 
     /**
      * @var array<int,array<string,mixed>>|null
      */
-    private static ?array $locations = null;
+    private static $locations;
 
     /**
      * @return array<string,mixed>|null
      */
     public static function getEpisodeById(int $id): ?array
     {
-        $matches = array_filter(self::getEpisodes(), static fn (array $episode): bool => $episode['id'] === $id);
+        $matches = array_filter(self::getEpisodes(), static function (array $episode) use ($id): bool {
+            return $episode['id'] === $id;
+        });
 
         return reset($matches) ?: null;
     }
@@ -66,7 +68,9 @@ class StarWarsData
      */
     public static function getCharactersByIds(array $ids): array
     {
-        return array_filter(self::getCharacters(), static fn ($item): bool => \in_array($item['id'], $ids, true));
+        return array_filter(self::getCharacters(), static function ($item) use ($ids): bool {
+            return \in_array($item['id'], $ids, true);
+        });
     }
 
     /**
@@ -104,7 +108,9 @@ class StarWarsData
      */
     public static function getLocationsByIds(array $ids): array
     {
-        return array_filter(self::getLocations(), static fn ($item): bool => \in_array($item['id'], $ids, true));
+        return array_filter(self::getLocations(), static function ($item) use ($ids): bool {
+            return \in_array($item['id'], $ids, true);
+        });
     }
 
     /**
