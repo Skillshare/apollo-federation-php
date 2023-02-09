@@ -4,66 +4,83 @@ declare(strict_types=1);
 
 namespace Apollo\Federation\Tests;
 
-use GraphQL\Type\Definition\Type;
-use GraphQL\Type\Definition\ObjectType;
-
+use Apollo\Federation\Enum\DirectiveEnum;
 use Apollo\Federation\FederatedSchema;
+use Apollo\Federation\SchemaBuilder;
 use Apollo\Federation\Types\EntityObjectType;
 use Apollo\Federation\Types\EntityRefObjectType;
+use GraphQL\Type\Definition\Directive;
+use GraphQL\Type\Definition\ObjectType;
+use GraphQL\Type\Definition\Type;
 
 class StarWarsSchema
 {
+    /**
+     * @var FederatedSchema|null
+     */
     public static $episodesSchema;
-    public static $overRiddedEpisodesSchema;
+
+    /**
+     * @var FederatedSchema|null
+     */
+    public static $overriddenEpisodesSchema;
 
     public static function getEpisodesSchema(): FederatedSchema
     {
         if (!self::$episodesSchema) {
-            self::$episodesSchema = new FederatedSchema([
-                'query' => self::getQueryType()
+            self::$episodesSchema = (new SchemaBuilder())->build([
+                'directives' => Directive::getInternalDirectives(),
+                'query' => self::getQueryType(),
+            ], [
+                'directives' => DirectiveEnum::getAll(),
             ]);
         }
+
         return self::$episodesSchema;
     }
 
     public static function getEpisodesSchemaCustomResolver(): FederatedSchema
     {
-        if (!self::$overRiddedEpisodesSchema) {
-            self::$overRiddedEpisodesSchema = new FederatedSchema([
+        if (!self::$overriddenEpisodesSchema) {
+            self::$overriddenEpisodesSchema = (new SchemaBuilder())->build([
+                'directives' => Directive::getInternalDirectives(),
                 'query' => self::getQueryType(),
-                'resolve' =>  function ($root, $args, $context, $info) {
-                    return array_map(function ($ref) use ($info) {
+                'resolve' => function ($root, $args, $context, $info): array {
+                    return array_map(static function (array $ref) use ($info) {
                         $typeName = $ref['__typename'];
                         $type = $info->schema->getType($typeName);
-                        $ref["id"] = $ref["id"] + 1;
+                        ++$ref['id'];
+
                         return $type->resolveReference($ref);
-                    }, $args['representations']);
-                }
+                    }, $args[FederatedSchema::RESERVED_FIELD_REPRESENTATIONS]);
+                },
+            ], [
+                'directives' => DirectiveEnum::getAll(),
             ]);
         }
-        return self::$overRiddedEpisodesSchema;
+
+        return self::$overriddenEpisodesSchema;
     }
 
     private static function getQueryType(): ObjectType
     {
         $episodeType = self::getEpisodeType();
 
-        $queryType = new ObjectType([
-            'name' => 'Query',
+        return new ObjectType([
+            'name' => FederatedSchema::RESERVED_TYPE_QUERY,
             'fields' => [
                 'episodes' => [
                     'type' => Type::nonNull(Type::listOf(Type::nonNull($episodeType))),
-                    'resolve' => function () {
+                    'resolve' => static function (): array {
                         return StarWarsData::getEpisodes();
-                    }
+                    },
                 ],
                 'deprecatedEpisodes' => [
                     'type' => Type::nonNull(Type::listOf(Type::nonNull($episodeType))),
-                    'deprecationReason' => 'Because you should use the other one.'
-                ]
-            ]
+                    'deprecationReason' => 'Because you should use the other one.',
+                ],
+            ],
         ]);
-        return $queryType;
     }
 
     private static function getEpisodeType(): EntityObjectType
@@ -73,26 +90,26 @@ class StarWarsSchema
             'description' => 'A film in the Star Wars Trilogy',
             'fields' => [
                 'id' => [
-                    'type' => Type::nonNull(Type::int())
+                    'type' => Type::nonNull(Type::int()),
                 ],
                 'title' => [
-                    'type' => Type::nonNull(Type::string())
+                    'type' => Type::nonNull(Type::string()),
                 ],
                 'characters' => [
                     'type' => Type::nonNull(Type::listOf(Type::nonNull(self::getCharacterType()))),
-                    'resolve' => function ($root) {
+                    'resolve' => static function ($root): array {
                         return StarWarsData::getCharactersByIds($root['characters']);
                     },
-                    'provides' => 'name'
-                ]
+                    'provides' => 'name',
+                ],
             ],
-            'keyFields' => ['id'],
-            '__resolveReference' => function ($ref) {
-                // print_r($ref);
+            EntityObjectType::FIELD_KEYS => [['fields' => 'id']],
+            EntityObjectType::FIELD_REFERENCE_RESOLVER => static function (array $ref): array {
                 $entity = StarWarsData::getEpisodeById($ref['id']);
-                $entity["__typename"] = "Episode";
+                $entity['__typename'] = 'Episode';
+
                 return $entity;
-            }
+            },
         ]);
     }
 
@@ -104,21 +121,21 @@ class StarWarsSchema
             'fields' => [
                 'id' => [
                     'type' => Type::nonNull(Type::int()),
-                    'isExternal' => true
+                    'isExternal' => true,
                 ],
                 'name' => [
                     'type' => Type::nonNull(Type::string()),
-                    'isExternal' => true
+                    'isExternal' => true,
                 ],
                 'locations' => [
                     'type' => Type::nonNull(Type::listOf(self::getLocationType())),
-                    'resolve' => function ($root) {
+                    'resolve' => static function ($root): array {
                         return StarWarsData::getLocationsByIds($root['locations']);
                     },
-                    'requires' => 'name'
-                ]
+                    'requires' => 'name',
+                ],
             ],
-            'keyFields' => ['id']
+            EntityObjectType::FIELD_KEYS => [['fields' => 'id', 'resolvable' => false]],
         ]);
     }
 
@@ -130,14 +147,14 @@ class StarWarsSchema
             'fields' => [
                 'id' => [
                     'type' => Type::nonNull(Type::int()),
-                    'isExternal' => true
+                    'isExternal' => true,
                 ],
                 'name' => [
                     'type' => Type::nonNull(Type::string()),
-                    'isExternal' => true
-                ]
+                    'isExternal' => true,
+                ],
             ],
-            'keyFields' => ['id']
+            EntityObjectType::FIELD_KEYS => [['fields' => 'id', 'resolvable' => false]],
         ]);
     }
 }

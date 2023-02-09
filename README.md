@@ -14,27 +14,28 @@ composer require skillshare/apollo-federation-php
 
 ### Entities
 
-An entity is an object type that you define canonically in one subgraph and can then reference and extend in other subgraphs. It can be defined via the `EntityObjectType` which takes the same configuration as the default `ObjectType` plus a `keyFields` and `__resolveReference` properties. 
+An entity is an object type that you define canonically in one subgraph and can then reference and extend in other subgraphs. It can be defined via the `EntityObjectType` which takes the same configuration as the default `ObjectType` plus a `keys` and `__resolveReference` properties. 
 
 ```php
 use Apollo\Federation\Types\EntityObjectType;
+use GraphQL\Type\Definition\Type;
 
 $userType = new EntityObjectType([
     'name' => 'User',
-    'keyFields' => ['id', 'email'],
+    'keys' => [['fields' => 'id'], ['fields' => 'email']],
     'fields' => [
         'id' => ['type' => Type::int()],
         'email' => ['type' => Type::string()],
         'firstName' => ['type' => Type::string()],
         'lastName' => ['type' => Type::string()]
     ],
-    '__resolveReference' => static function ($ref) {
-        // .. fetch from a data source.
+    '__resolveReference' => function ($ref) {
+        // ... fetch from a data source.
     }
 ]);
 ```
 
-* `keyFields` — defines the entity's primary key, which consists of one or more of the type's. An entity's key cannot include fields that return a union or interface.
+* `keys` — defines the entity's unique keys, which consists of one or more of the fields. An entity's key cannot include fields that return a union or interface.
 
 * `__resolveReference` — resolves the representation of the entity from the provided reference. Subgraphs use representations to reference entities from other subgraphs. A representation requires only an explicit __typename definition and values for the entity's primary key fields.
 
@@ -49,7 +50,7 @@ use Apollo\Federation\Types\EntityRefObjectType;
 
 $userType = new EntityRefObjectType([
     'name' => 'User',
-    'keyFields' => ['id', 'email'],
+    'keys' => [['fields' => 'id', 'resolvable' => false]],
     'fields' => [
         'id' => ['type' => Type::int()],
         'email' => ['type' => Type::string()]
@@ -68,16 +69,12 @@ use Apollo\Federation\Types\EntityRefObjectType;
 
 $userType = new EntityRefObjectType([
     'name' => 'User',
-    'keyFields' => ['id', 'email'],
+    'keys' => [['fields' => 'id', 'resolvable' => false]],
     'fields' => [
         'id' => [
             'type' => Type::int(),
             'isExternal' => true
         ],
-        'email' => [
-            'type' => Type::string(),
-            'isExternal' => true
-        ]
     ]
 ]);
 ```

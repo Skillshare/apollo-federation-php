@@ -4,71 +4,105 @@ declare(strict_types=1);
 
 namespace Apollo\Federation\Tests;
 
+use Apollo\Federation\Directives;
+use GraphQL\Language\DirectiveLocation;
+use GraphQL\Type\Definition\ObjectType;
+use GraphQL\Type\Definition\Type;
+use GraphQL\Type\Schema;
+use GraphQL\Utils\SchemaPrinter;
 use PHPUnit\Framework\TestCase;
 use Spatie\Snapshots\MatchesSnapshots;
 
-use GraphQL\Type\Schema;
-use GraphQL\Type\Definition\Type;
-use GraphQL\Type\Definition\ObjectType;
-use GraphQL\Language\DirectiveLocation;
-use GraphQL\Utils\SchemaPrinter;
-
-use Apollo\Federation\Directives;
-
-class DirectivesTest extends TestCase
+final class DirectivesTest extends TestCase
 {
     use MatchesSnapshots;
 
-    public function testKeyDirective()
+    public function testKeyDirective(): void
     {
         $config = Directives::key()->config;
 
         $expectedLocations = [DirectiveLocation::OBJECT, DirectiveLocation::IFACE];
 
-        $this->assertEquals($config['name'], 'key');
-        $this->assertEqualsCanonicalizing($config['locations'], $expectedLocations);
+        $this->assertEquals('key', $config['name']);
+        $this->assertEqualsCanonicalizing($expectedLocations, $config['locations']);
     }
 
-    public function testExternalDirective()
+    public function testExternalDirective(): void
     {
         $config = Directives::external()->config;
 
         $expectedLocations = [DirectiveLocation::FIELD_DEFINITION];
 
-        $this->assertEquals($config['name'], 'external');
-        $this->assertEqualsCanonicalizing($config['locations'], $expectedLocations);
+        $this->assertEquals('external', $config['name']);
+        $this->assertEqualsCanonicalizing($expectedLocations, $config['locations']);
     }
 
-    public function testRequiresDirective()
+    public function testInaccessibleDirective(): void
+    {
+        $config = Directives::inaccessible()->config;
+
+        $expectedLocations = [
+            DirectiveLocation::FIELD_DEFINITION,
+            DirectiveLocation::IFACE,
+            DirectiveLocation::OBJECT,
+            DirectiveLocation::UNION,
+        ];
+
+        $this->assertEquals('inaccessible', $config['name']);
+        $this->assertEqualsCanonicalizing($expectedLocations, $config['locations']);
+    }
+
+    public function testLinkDirective(): void
+    {
+        $config = Directives::link()->config;
+
+        $expectedLocations = [DirectiveLocation::SCHEMA];
+
+        $this->assertEquals('link', $config['name']);
+        $this->assertEqualsCanonicalizing($expectedLocations, $config['locations']);
+        $this->assertTrue($config['isRepeatable']);
+    }
+
+    public function testRequiresDirective(): void
     {
         $config = Directives::requires()->config;
 
         $expectedLocations = [DirectiveLocation::FIELD_DEFINITION];
 
-        $this->assertEquals($config['name'], 'requires');
-        $this->assertEqualsCanonicalizing($config['locations'], $expectedLocations);
+        $this->assertEquals('requires', $config['name']);
+        $this->assertEqualsCanonicalizing($expectedLocations, $config['locations']);
     }
 
-    public function testProvidesDirective()
+    public function testProvidesDirective(): void
     {
         $config = Directives::provides()->config;
 
         $expectedLocations = [DirectiveLocation::FIELD_DEFINITION];
 
-        $this->assertEquals($config['name'], 'provides');
-        $this->assertEqualsCanonicalizing($config['locations'], $expectedLocations);
+        $this->assertEquals('provides', $config['name']);
+        $this->assertEqualsCanonicalizing($expectedLocations, $config['locations']);
     }
 
-    public function testItAddsDirectivesToSchema()
+    public function testShareableDirective(): void
+    {
+        $config = Directives::shareable()->config;
+
+        $expectedLocations = [DirectiveLocation::FIELD_DEFINITION, DirectiveLocation::OBJECT];
+
+        $this->assertEquals('shareable', $config['name']);
+        $this->assertEqualsCanonicalizing($expectedLocations, $config['locations']);
+    }
+
+    public function testItAddsDirectivesToSchema(): void
     {
         $schema = new Schema([
             'query' => new ObjectType([
                 'name' => 'Query',
                 'fields' => [
-                    '_' => ['type' => Type::string()]
-                ]
+                    '_' => ['type' => Type::string()],
+                ],
             ]),
-            'directives' => Directives::getDirectives()
+            'directives' => Directives::getDirectives(),
         ]);
 
         $schemaSdl = SchemaPrinter::doPrint($schema);

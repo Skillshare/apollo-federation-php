@@ -6,100 +6,132 @@ namespace Apollo\Federation\Tests;
 
 class StarWarsData
 {
+    /**
+     * @var array<int,array<string,mixed>>|null
+     */
     private static $episodes;
 
+    /**
+     * @var array<int,array<string,mixed>>|null
+     */
     private static $characters;
 
+    /**
+     * @var array<int,array<string,mixed>>|null
+     */
     private static $locations;
 
-    public static function getEpisodeById($id)
+    /**
+     * @return array<string,mixed>|null
+     */
+    public static function getEpisodeById(int $id): ?array
     {
-        $matches = array_filter(self::getEpisodes(), function ($episode) use ($id) {
+        $matches = array_filter(self::getEpisodes(), static function (array $episode) use ($id): bool {
             return $episode['id'] === $id;
         });
-        return reset($matches);
+
+        return reset($matches) ?: null;
     }
 
-    public static function getEpisodes()
+    /**
+     * @return array<int,array<string,mixed>>
+     */
+    public static function getEpisodes(): array
     {
         if (!self::$episodes) {
             self::$episodes = [
                 [
                     'id' => 1,
                     'title' => 'A New Hope',
-                    'characters' => [1, 2, 3]
+                    'characters' => [1, 2, 3],
                 ],
                 [
                     'id' => 2,
                     'title' => 'The Empire Strikes Back',
-                    'characters' => [1, 2, 3]
+                    'characters' => [1, 2, 3],
                 ],
                 [
                     'id' => 3,
                     'title' => 'Return of the Jedi',
-                    'characters' => [1, 2, 3]
-                ]
+                    'characters' => [1, 2, 3],
+                ],
             ];
         }
 
         return self::$episodes;
     }
 
-    public static function getCharactersByIds($ids)
+    /**
+     * @param int[] $ids
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    public static function getCharactersByIds(array $ids): array
     {
-        return array_filter(self::getCharacters(), function ($character) use ($ids) {
-            return in_array($character['id'], $ids);
+        return array_filter(self::getCharacters(), static function ($item) use ($ids): bool {
+            return \in_array($item['id'], $ids, true);
         });
     }
 
-    public static function getCharacters()
+    /**
+     * @return array<int,array<string,mixed>>
+     */
+    public static function getCharacters(): array
     {
         if (!self::$characters) {
             self::$characters = [
                 [
                     'id' => 1,
                     'name' => 'Luke Skywalker',
-                    'locations' => [1, 2, 3]
+                    'locations' => [1, 2, 3],
                 ],
                 [
                     'id' => 2,
                     'name' => 'Han Solo',
-                    'locations' => [1, 2]
+                    'locations' => [1, 2],
                 ],
                 [
                     'id' => 3,
                     'name' => 'Leia Skywalker',
-                    'locations' => [3]
-                ]
+                    'locations' => [3],
+                ],
             ];
         }
 
         return self::$characters;
     }
 
-    public static function getLocationsByIds($ids)
+    /**
+     * @param int[] $ids
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    public static function getLocationsByIds(array $ids): array
     {
-        return array_filter(self::getLocations(), function ($location) use ($ids) {
-            return in_array($location['id'], $ids);
+        return array_filter(self::getLocations(), static function ($item) use ($ids): bool {
+            return \in_array($item['id'], $ids, true);
         });
     }
 
-    public static function getLocations()
+    /**
+     * @return array<int,array<string,mixed>>
+     */
+    public static function getLocations(): array
     {
         if (!self::$locations) {
             self::$locations = [
                 [
                     'id' => 1,
-                    'name' => 'Tatooine'
+                    'name' => 'Tatooine',
                 ],
                 [
                     'id' => 2,
-                    'name' => 'Endor'
+                    'name' => 'Endor',
                 ],
                 [
                     'id' => 3,
-                    'name' => 'Hoth'
-                ]
+                    'name' => 'Hoth',
+                ],
             ];
         }
 

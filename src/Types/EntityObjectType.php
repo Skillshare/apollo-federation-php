@@ -4,34 +4,34 @@ declare(strict_types=1);
 
 namespace Apollo\Federation\Types;
 
-use GraphQL\Utils\Utils;
+use Apollo\Federation\FederatedSchema;
 use GraphQL\Type\Definition\ObjectType;
-
-use array_key_exists;
+use GraphQL\Utils\Utils;
 
 /**
  * An entity is a type that can be referenced by another service. Entities create
  * connection points between services and form the basic building blocks of a federated
  * graph. Entities have a primary key whose value uniquely identifies a specific instance
  * of the type, similar to the function of a primary key in a SQL table
- * (see [related docs](https://www.apollographql.com/docs/apollo-server/federation/core-concepts/#entities-and-keys)).
+ * see related docs {@see https://www.apollographql.com/docs/apollo-server/federation/core-concepts/#entities-and-keys }.
  *
- * The `keyFields` property is required in the configuration, indicating the fields that
+ * The `keys` property is required in the configuration, indicating the fields that
  * serve as the unique keys or identifiers of the entity.
  *
  * Sample usage:
- *
+ * <code>
  *     $userType = new Apollo\Federation\Types\EntityObjectType([
  *       'name' => 'User',
- *       'keyFields' => ['id', 'email'],
+ *       'keys' => [['fields' => 'id'], ['fields' => 'email']],
  *       'fields' => [...]
  *     ]);
+ * </code>
  *
  * Entity types can also set attributes to its fields to hint the gateway on how to resolve them.
- *
+ * <code>
  *     $userType = new Apollo\Federation\Types\EntityObjectType([
  *       'name' => 'User',
- *       'keyFields' => ['id', 'email'],
+ *       'keys' => [['fields' => 'id', 'resolvable': false ]],
  *       'fields' => [
  *         'id' => [
  *           'type' => Types::int(),
@@ -39,26 +39,42 @@ use array_key_exists;
  *         ]
  *       ]
  *     ]);
- *
+ * </code>
  */
 class EntityObjectType extends ObjectType
 {
-    /** @var array */
-    private $keyFields;
+    public const FIELD_KEYS = 'keys';
+    public const FIELD_REFERENCE_RESOLVER = '__resolveReference';
 
-    /** @var callable */
-    public $referenceResolver;
+    public const FIELD_DIRECTIVE_IS_EXTERNAL = 'isExternal';
+    public const FIELD_DIRECTIVE_PROVIDES = 'provides';
+    public const FIELD_DIRECTIVE_REQUIRES = 'requires';
+
+    /** @var callable|null */
+    public $referenceResolver = null;
 
     /**
-     * @param mixed[] $config
+     * @var array<int,array{fields: array<int,string>|array<int|string,string|array<int|string,mixed>>, resolvable: bool }>
+     */
+    private $keys;
+
+    /**
+     * @param array<string,mixed> $config
      */
     public function __construct(array $config)
     {
-        $this->keyFields = $config['keyFields'];
+        Utils::invariant(
+            !(\array_key_exists(self::FIELD_KEYS, $config) && \array_key_exists('keyFields', $config)),
+            'Use only one way to define directives @key.'
+        );
 
-        if (isset($config['__resolveReference'])) {
+        $this->keys = $config[self::FIELD_KEYS] ?? array_map(static function ($x): array {
+            return ['fields' => $x];
+        }, $config['keyFields']);
+
+        if (isset($config[self::FIELD_REFERENCE_RESOLVER])) {
             self::validateResolveReference($config);
-            $this->referenceResolver = $config['__resolveReference'];
+            $this->referenceResolver = $config[self::FIELD_REFERENCE_RESOLVER];
         }
 
         parent::__construct($config);
@@ -67,17 +83,38 @@ class EntityObjectType extends ObjectType
     /**
      * Gets the fields that serve as the unique key or identifier of the entity.
      *
-     * @return array
+     * @deprecated Use {@see getKeys()}
+     *
+     * @return array<int,string>|array<int|string,string|array<int|string,mixed>>
+     *
+     * @codeCoverageIgnore
      */
     public function getKeyFields(): array
     {
-        return $this->keyFields;
+        @trigger_error(
+            'Since skillshare/apollo-federation-php 2.0.0: '
+            . 'Method \Apollo\Federation\Types\EntityObjectType::getKeyFields() is deprecated. '
+            . 'Use \Apollo\Federation\Types\EntityObjectType::getKeys() instead of it.',
+            \E_USER_DEPRECATED
+        );
+
+        return array_merge(...array_map(static function (array $x): array {
+            return (array) $x['fields'];
+        }, $this->keys));
     }
 
     /**
-     * Gets whether this entity has a resolver set
+     * Gets the fields that serve as the unique key or identifier of the entity.
      *
-     * @return bool
+     * @return array<int,array{fields: array<int,string>|array<int|string,string|array<int|string,mixed>>, resolvable: bool }>
+     */
+    public function getKeys(): array
+    {
+        return $this->keys;
+    }
+
+    /**
+     * Gets whether this entity has a resolver set.
      */
     public function hasReferenceResolver(): bool
     {
@@ -85,34 +122,44 @@ class EntityObjectType extends ObjectType
     }
 
     /**
-     * Resolves an entity from a reference
+     * Resolves an entity from a reference.
      *
-     * @param mixed $ref
-     * @param mixed $context
-     * @param mixed $info
+     * @param mixed|null $ref
+     * @param mixed|null $context
+     * @param mixed|null $info
+     *
+     * @retrun mixed|null
      */
     public function resolveReference($ref, $context = null, $info = null)
     {
         $this->validateReferenceResolver();
         $this->validateReferenceKeys($ref);
 
-        $entity = ($this->referenceResolver)($ref, $context, $info);
-        
-        return $entity;
+        return ($this->referenceResolver)($ref, $context, $info);
     }
 
-    private function validateReferenceResolver()
+    private function validateReferenceResolver(): void
     {
-        Utils::invariant(isset($this->referenceResolver), 'No reference resolver was set in the configuration.');
+        Utils::invariant(\is_callable($this->referenceResolver), 'Invalid reference resolver configuration.');
     }
 
-    private function validateReferenceKeys($ref)
+    /**
+     * @param array{ __typename: mixed } $ref
+     */
+    private function validateReferenceKeys(array $ref): void
     {
-        Utils::invariant(isset($ref['__typename']), 'Type name must be provided in the reference.');
+        Utils::invariant(
+            isset($ref[FederatedSchema::RESERVED_FIELD_TYPE_NAME])
+            && $ref[FederatedSchema::RESERVED_FIELD_TYPE_NAME] === $this->config['name'],
+            'Type name must be provided in the reference.'
+        );
     }
 
-    public static function validateResolveReference(array $config)
+    /**
+     * @param array{ __resolveReference: mixed } $config
+     */
+    public static function validateResolveReference(array $config): void
     {
-        Utils::invariant(is_callable($config['__resolveReference']), 'Reference resolver has to be callable.');
+        Utils::invariant(\is_callable($config[self::FIELD_REFERENCE_RESOLVER]), 'Reference resolver has to be callable.');
     }
 }

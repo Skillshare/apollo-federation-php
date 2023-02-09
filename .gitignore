@@ -1,7 +1,8 @@
+.idea
+.vscode
 composer.phar
 /vendor/
 /node_modules/
 *.cache
 cov.xml
-.idea
-.vscode
+phpunit.xml
