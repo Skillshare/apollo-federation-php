@@ -16,11 +16,32 @@ class StarWarsSchema
     public static $episodesSchema;
     public static $overRiddedEpisodesSchema;
 
+    public static $episodeType = null;
+    public static $locationType = null;
+    public static $characterType = null;
+
     public static function getEpisodesSchema(): FederatedSchema
     {
         if (!self::$episodesSchema) {
             self::$episodesSchema = new FederatedSchema([
-                'query' => self::getQueryType()
+                'query' => self::getQueryType(),
+                'typeLoader' => self::getTypeLoader()
+            ]);
+        }
+        return self::$episodesSchema;
+    }
+
+    public static function getEpisodesSchemaWithProvidedEntities(): FederatedSchema
+    {
+        if (!self::$episodesSchema) {
+            self::$episodesSchema = new FederatedSchema([
+                'query' => self::getQueryType(),
+                'typeLoader' => self::getTypeLoader(),
+                'entityTypes' => [
+                    self::getCharacterType(),
+                    self::getLocationType(),
+                    self::getEpisodeType()
+                ]
             ]);
         }
         return self::$episodesSchema;
@@ -38,10 +59,25 @@ class StarWarsSchema
                         $ref["id"] = $ref["id"] + 1;
                         return $type->resolveReference($ref);
                     }, $args['representations']);
-                }
+                },
+                'typeLoader' => self::getTypeLoader()
             ]);
         }
         return self::$overRiddedEpisodesSchema;
+    }
+
+    public static function getTypeLoader(): callable {
+        return function ($typeName) {
+            if ($typeName === "Episode") {
+                return self::getEpisodeType();
+            }
+            else if ($typeName === "Character") {
+                return self::getCharacterType();
+            }
+            else if ($typeName === "Location") {
+                return self::getLocationType();
+            }
+        };
     }
 
     private static function getQueryType(): ObjectType
@@ -68,7 +104,11 @@ class StarWarsSchema
 
     private static function getEpisodeType(): EntityObjectType
     {
-        return new EntityObjectType([
+        if (self::$episodeType) {
+            return self::$episodeType;
+        }
+
+        self::$episodeType = new EntityObjectType([
             'name' => 'Episode',
             'description' => 'A film in the Star Wars Trilogy',
             'fields' => [
@@ -94,11 +134,17 @@ class StarWarsSchema
                 return $entity;
             }
         ]);
+
+        return self::$episodeType;
     }
 
     private static function getCharacterType(): EntityRefObjectType
     {
-        return new EntityRefObjectType([
+        if (self::$characterType) {
+            return self::$characterType;
+        }
+
+        self::$characterType = new EntityRefObjectType([
             'name' => 'Character',
             'description' => 'A character in the Star Wars Trilogy',
             'fields' => [
@@ -120,11 +166,17 @@ class StarWarsSchema
             ],
             'keyFields' => ['id']
         ]);
+
+        return self::$characterType;
     }
 
     private static function getLocationType(): EntityRefObjectType
     {
-        return new EntityRefObjectType([
+        if (self::$locationType) {
+            return self::$locationType;
+        }
+
+        self::$locationType = new EntityRefObjectType([
             'name' => 'Location',
             'description' => 'A location in the Star Wars Trilogy',
             'fields' => [
@@ -139,5 +191,7 @@ class StarWarsSchema
             ],
             'keyFields' => ['id']
         ]);
+
+        return self::$locationType;
     }
 }
