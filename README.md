@@ -105,7 +105,7 @@ $query = 'query GetServiceSDL { _service { sdl } }';
 $result = GraphQL::executeQuery($schema, $query);
 ```
 
-#### config
+#### Config
 
 The config parameter for the `FederatedSchema` object is entirely compatible with the `Schema` config argument. On top of this, we support the following optional parameters:
 
