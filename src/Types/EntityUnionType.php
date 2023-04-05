@@ -13,13 +13,16 @@ class EntityUnionType extends UnionType
 {
 
     /**
-     * @param array $entityTypes all entity types.
+     * @param array|callable $entityTypes all entity types or a callable to retrieve them
      */
-    public function __construct(array $entityTypes)
+    public function __construct($entityTypes)
     {
         $config = [
             'name' => self::getTypeName(),
-            'types' => array_values($entityTypes)
+            'types' => is_callable($entityTypes) 
+                ? fn () => array_values($entityTypes())
+                : array_values($entityTypes)
+                
         ];
         parent::__construct($config);
     }
