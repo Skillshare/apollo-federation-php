@@ -8,11 +8,9 @@ use PHPUnit\Framework\TestCase;
 use Spatie\Snapshots\MatchesSnapshots;
 
 use GraphQL\GraphQL;
-use GraphQL\Type\Definition\Type;
 use GraphQL\Utils\SchemaPrinter;
 
 use Apollo\Federation\Tests\StarWarsSchema;
-use Apollo\Federation\Tests\DungeonsAndDragonsSchema;
 
 class SchemaTest extends TestCase
 {
@@ -83,6 +81,14 @@ class SchemaTest extends TestCase
     public function testSchemaSdl()
     {
         $schema = StarWarsSchema::getEpisodesSchema();
+        $schemaSdl = SchemaPrinter::doPrint($schema);
+
+        $this->assertMatchesSnapshot($schemaSdl);
+    }
+
+    public function testSchemaSdlForProvidedEntities()
+    {
+        $schema = StarWarsSchema::getEpisodesSchemaWithProvidedEntities();
         $schemaSdl = SchemaPrinter::doPrint($schema);
 
         $this->assertMatchesSnapshot($schemaSdl);

@@ -105,6 +105,12 @@ $query = 'query GetServiceSDL { _service { sdl } }';
 $result = GraphQL::executeQuery($schema, $query);
 ```
 
+#### Config
+
+The config parameter for the `FederatedSchema` object is entirely compatible with the `Schema` config argument. On top of this, we support the following optional parameters:
+
+1. `entityTypes` - the entity types (which extend `EntityObjectType`) which will form the `_Entity` type on the federated schema. If not provided, the Schema will scan the `Query` type tree for all types extending `EntityObjectType`.
+
 ## Disclaimer
 
 Documentation in this project include content quoted directly from the [Apollo official documentation](https://www.apollographql.com/docs) to reduce redundancy.

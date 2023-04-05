@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Apollo\Federation;
 
+use Apollo\Federation\Types\AnyType;
 use GraphQL\Type\Schema;
-use GraphQL\Type\Definition\CustomScalarType;
 use GraphQL\Type\Definition\Directive;
 use GraphQL\Type\Definition\ObjectType;
-use GraphQL\Type\Definition\UnionType;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Utils\TypeInfo;
 use GraphQL\Utils\Utils;
 
 use Apollo\Federation\Types\EntityObjectType;
-use Apollo\Federation\Utils\FederatedSchemaPrinter;
+use Apollo\Federation\Types\EntityUnionType;
+use Apollo\Federation\Types\ServiceDefinitionType;
 
 /**
  * A federated GraphQL schema definition (see [related docs](https://www.apollographql.com/docs/apollo-server/federation/introduction))
@@ -55,18 +55,36 @@ use Apollo\Federation\Utils\FederatedSchemaPrinter;
  */
 class FederatedSchema extends Schema
 {
-    /** @var EntityObjectType[] */
+    /** @var EntityObjectType[]|callable: EntityObjectType[] */
     protected $entityTypes;
 
     /** @var Directive[] */
     protected $entityDirectives;
 
+    protected ServiceDefinitionType $serviceDefinitionType;
+    protected EntityUnionType $entityUnionType;
+    protected AnyType $anyType;
+
+    /**
+     * 
+     * We will provide the parts that we need to operate against.
+     * 
+     * @param array{?entityTypes: array<EntityObjectType>, ?typeLoader: callable, query: array} $config
+     */
     public function __construct($config)
     {
-        $this->entityTypes = $this->extractEntityTypes($config);
+        $this->entityTypes = $config['entityTypes'] ?? $this->lazyEntityTypeExtractor($config);
         $this->entityDirectives = array_merge(Directives::getDirectives(), Directive::getInternalDirectives());
+        
+        $this->serviceDefinitionType = new ServiceDefinitionType($this);
+        $this->entityUnionType = new EntityUnionType($this->entityTypes);
+        $this->anyType = new AnyType();
 
-        $config = array_merge($config, $this->getEntityDirectivesConfig($config), $this->getQueryTypeConfig($config));
+        $config = array_merge($config, 
+            $this->getEntityDirectivesConfig($config), 
+            $this->getQueryTypeConfig($config),
+            $this->supplementTypeLoader($config)
+        );
 
         parent::__construct($config);
     }
@@ -78,7 +96,9 @@ class FederatedSchema extends Schema
      */
     public function getEntityTypes(): array
     {
-        return $this->entityTypes;
+        return is_callable($this->entityTypes)
+            ? ($this->entityTypes)()
+            : $this->entityTypes;
     }
 
     /**
@@ -121,24 +141,42 @@ class FederatedSchema extends Schema
         ];
     }
 
+    /**
+     * Add type loading functionality for the types required for the federated schema to function.
+     */
+    private function supplementTypeLoader(array $config): array
+    {
+        if (!array_key_exists('typeLoader', $config) || !is_callable($config['typeLoader'])) {
+            return [];
+        }
+
+        return [
+            'typeLoader' => function ($typeName) use ($config) {
+                $map = $this->builtInTypeMap();
+                if (array_key_exists($typeName, $map)) {
+                    return $map[$typeName];
+                }
+
+                return $config['typeLoader']($typeName);
+            }
+        ];
+    }
+
+    private function builtInTypeMap(): array 
+    {
+        return [
+            EntityUnionType::getTypeName() => $this->entityUnionType,
+            ServiceDefinitionType::getTypeName() => $this->serviceDefinitionType,
+            AnyType::getTypeName() => $this->anyType
+        ];
+    }
+
     /** @var array */
     private function getQueryTypeServiceFieldConfig(): array
     {
-        $serviceType = new ObjectType([
-            'name' => '_Service',
-            'fields' => [
-                'sdl' => [
-                    'type' => Type::string(),
-                    'resolve' => function () {
-                        return FederatedSchemaPrinter::doPrint($this);
-                    }
-                ]
-            ]
-        ]);
-
         return [
             '_service' => [
-                'type' => Type::nonNull($serviceType),
+                'type' => Type::nonNull($this->serviceDefinitionType),
                 'resolve' => function () {
                     return [];
                 }
@@ -149,28 +187,12 @@ class FederatedSchema extends Schema
     /** @var array */
     private function getQueryTypeEntitiesFieldConfig(?array $config): array
     {
-        if (!$this->hasEntityTypes()) {
-            return [];
-        }
-
-        $entityType = new UnionType([
-            'name' => '_Entity',
-            'types' => array_values($this->getEntityTypes())
-        ]);
-
-        $anyType = new CustomScalarType([
-            'name' => '_Any',
-            'serialize' => function ($value) {
-                return $value;
-            }
-        ]);
-
         return [
             '_entities' => [
-                'type' => Type::listOf($entityType),
+                'type' => Type::listOf($this->entityUnionType),
                 'args' => [
                     'representations' => [
-                        'type' => Type::nonNull(Type::listOf(Type::nonNull($anyType)))
+                        'type' => Type::nonNull(Type::listOf(Type::nonNull($this->anyType)))
                     ]
                 ],
                 'resolve' => function ($root, $args, $context, $info) use ($config) {
@@ -208,22 +230,25 @@ class FederatedSchema extends Schema
             return $r;
         }, $args['representations']);
     }
+
     /**
      * @param array $config
      *
-     * @return EntityObjectType[]
+     * @return callable: EntityObjectType[]
      */
-    private function extractEntityTypes(array $config): array
+    private function lazyEntityTypeExtractor(array $config): callable
     {
-        $resolvedTypes = TypeInfo::extractTypes($config['query']);
-        $entityTypes = [];
-
-        foreach ($resolvedTypes as $type) {
-            if ($type instanceof EntityObjectType) {
-                $entityTypes[$type->name] = $type;
+        return function () use ($config) {
+            $resolvedTypes = TypeInfo::extractTypes($config['query']);
+            $entityTypes = [];
+    
+            foreach ($resolvedTypes as $type) {
+                if ($type instanceof EntityObjectType) {
+                    $entityTypes[$type->name] = $type;
+                }
             }
-        }
 
-        return $entityTypes;
+            return $entityTypes;
+        };
     }
 }
