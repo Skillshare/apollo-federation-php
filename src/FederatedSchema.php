@@ -65,6 +65,12 @@ class FederatedSchema extends Schema
     protected EntityUnionType $entityUnionType;
     protected AnyType $anyType;
 
+    /**
+     * 
+     * We will provide the parts that we need to operate against.
+     * 
+     * @param array{?entityTypes: array<EntityObjectType>, ?typeLoader: callable, query: array} $config
+     */
     public function __construct($config)
     {
         $this->entityTypes = $config['entityTypes'] ?? $this->lazyEntityTypeExtractor($config);
