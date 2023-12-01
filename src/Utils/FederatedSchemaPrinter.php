@@ -254,7 +254,7 @@ class FederatedSchemaPrinter
                 return empty($arg->description);
             })
         ) {
-            return '(' . implode(', ', array_map('self::printInputValue', $args)) . ')';
+            return '(' . implode(', ', array_map('FederatedSchemaPrinter::printInputValue', $args)) . ')';
         }
 
         return sprintf(
