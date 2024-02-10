@@ -5,3 +5,4 @@ composer.phar
 cov.xml
 .idea
 .vscode
+composer.lock

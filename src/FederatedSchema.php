@@ -59,29 +59,29 @@ class FederatedSchema extends Schema
     protected $entityTypes;
 
     /** @var Directive[] */
-    protected $entityDirectives;
+    protected array $entityDirectives;
 
     protected ServiceDefinitionType $serviceDefinitionType;
     protected EntityUnionType $entityUnionType;
     protected AnyType $anyType;
 
     /**
-     * 
+     *
      * We will provide the parts that we need to operate against.
-     * 
-     * @param array{?entityTypes: array<EntityObjectType>, ?typeLoader: callable, query: array} $config
+     *
+     * @param array{entityTypes: array<EntityObjectType>|null, typeLoader: callable|null, query: array} $config
      */
     public function __construct($config)
     {
         $this->entityTypes = $config['entityTypes'] ?? $this->lazyEntityTypeExtractor($config);
         $this->entityDirectives = array_merge(Directives::getDirectives(), Directive::getInternalDirectives());
-        
+
         $this->serviceDefinitionType = new ServiceDefinitionType($this);
         $this->entityUnionType = new EntityUnionType($this->entityTypes);
         $this->anyType = new AnyType();
 
-        $config = array_merge($config, 
-            $this->getEntityDirectivesConfig($config), 
+        $config = array_merge($config,
+            $this->getEntityDirectivesConfig($config),
             $this->getQueryTypeConfig($config),
             $this->supplementTypeLoader($config)
         );
@@ -162,7 +162,7 @@ class FederatedSchema extends Schema
         ];
     }
 
-    private function builtInTypeMap(): array 
+    private function builtInTypeMap(): array
     {
         return [
             EntityUnionType::getTypeName() => $this->entityUnionType,
@@ -197,7 +197,7 @@ class FederatedSchema extends Schema
                 ],
                 'resolve' => function ($root, $args, $context, $info) use ($config) {
                     if (isset($config) && isset($config['resolve']) && is_callable($config['resolve'])) {
-                        return $config['resolve']($root, $args, $context, $info);;
+                        return $config['resolve']($root, $args, $context, $info);
                     } else {
                         return $this->resolve($root, $args, $context, $info);
                     }
@@ -209,13 +209,13 @@ class FederatedSchema extends Schema
     private function resolve($root, $args, $context, $info)
     {
         return array_map(function ($ref) use ($context, $info) {
-            Utils::invariant(isset($ref['__typename']), 'Type name must be provided in the reference.');
+            assert(isset($ref['__typename']), 'Type name must be provided in the reference.');
 
             $typeName = $ref['__typename'];
             $type = $info->schema->getType($typeName);
 
-            Utils::invariant(
-                $type && $type instanceof EntityObjectType,
+            assert(
+                $type instanceof EntityObjectType,
                 sprintf(
                     'The _entities resolver tried to load an entity for type "%s", but no object type of that name was found in the schema',
                     $type->name
@@ -239,9 +239,10 @@ class FederatedSchema extends Schema
     private function lazyEntityTypeExtractor(array $config): callable
     {
         return function () use ($config) {
-            $resolvedTypes = TypeInfo::extractTypes($config['query']);
+            $resolvedTypes = [];
+            TypeInfo::extractTypes($config['query'], $resolvedTypes);
             $entityTypes = [];
-    
+
             foreach ($resolvedTypes as $type) {
                 if ($type instanceof EntityObjectType) {
                     $entityTypes[$type->name] = $type;

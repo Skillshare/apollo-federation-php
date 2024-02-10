@@ -8,14 +8,15 @@ use Apollo\Federation\Directives\KeyDirective;
 use Apollo\Federation\Directives\ExternalDirective;
 use Apollo\Federation\Directives\ProvidesDirective;
 use Apollo\Federation\Directives\RequiresDirective;
+use GraphQL\Type\Definition\Directive;
 
 /**
  * Helper class to get directives for annotating federated entity types.
  */
 class Directives
 {
-    /** @var array */
-    private static $directives;
+    /** @var array<string, Directive> */
+    private static array $directives;
 
     /**
      * Gets the @key directive
@@ -54,7 +55,7 @@ class Directives
      */
     public static function getDirectives(): array
     {
-        if (!self::$directives) {
+        if (!isset(self::$directives)) {
             self::$directives = [
                 'key' => new KeyDirective(),
                 'external' => new ExternalDirective(),
