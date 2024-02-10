@@ -6,26 +6,6 @@ directive @requires(fields: String!) on FIELD_DEFINITION
 
 directive @provides(fields: String!) on FIELD_DEFINITION
 
-"""A character in the Star Wars Trilogy"""
-type Character {
-  id: Int!
-  name: String!
-  locations: [Location]!
-}
-
-"""A film in the Star Wars Trilogy"""
-type Episode {
-  id: Int!
-  title: String!
-  characters: [Character!]!
-}
-
-"""A location in the Star Wars Trilogy"""
-type Location {
-  id: Int!
-  name: String!
-}
-
 type Query {
   episodes: [Episode!]!
   deprecatedEpisodes: [Episode!]! @deprecated(reason: "Because you should use the other one.")
@@ -33,10 +13,30 @@ type Query {
   _entities(representations: [_Any!]!): [_Entity]
 }
 
-scalar _Any
+"A film in the Star Wars Trilogy"
+type Episode {
+  id: Int!
+  title: String!
+  characters: [Character!]!
+}
 
-union _Entity = Episode | Character | Location
+"A character in the Star Wars Trilogy"
+type Character {
+  id: Int!
+  name: String!
+  locations: [Location]!
+}
+
+"A location in the Star Wars Trilogy"
+type Location {
+  id: Int!
+  name: String!
+}
 
 type _Service {
   sdl: String
 }
+
+scalar _Any
+
+union _Entity = Episode | Character | Location

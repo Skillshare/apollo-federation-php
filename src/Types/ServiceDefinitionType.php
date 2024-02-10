@@ -14,7 +14,6 @@ use GraphQL\Type\Schema;
  */
 class ServiceDefinitionType extends ObjectType
 {
-
     /**
      * @param Schema $schema - the schemas whose SDL should be printed.
      */
@@ -26,7 +25,7 @@ class ServiceDefinitionType extends ObjectType
                 'sdl' => [
                     'type' => Type::string(),
                     'resolve' => fn () => FederatedSchemaPrinter::doPrint($schema)
-                ]     
+                ]
             ]
         ];
         parent::__construct($config);
